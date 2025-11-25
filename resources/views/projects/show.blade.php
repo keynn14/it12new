@@ -76,9 +76,9 @@
         
         <div class="info-card">
             <div class="info-card-header">
-                <h5 class="info-card-title"><i class="bi bi-file-earmark-diff"></i> Change Orders</h5>
+                <h5 class="info-card-title"><i class="bi bi-file-earmark-diff"></i> Additional Project</h5>
                 <a href="{{ route('change-orders.create', ['project_id' => $project->id]) }}" class="btn btn-sm btn-primary">
-                    <i class="bi bi-plus-circle"></i> Add Change Order
+                    <i class="bi bi-plus-circle"></i> Add Additional Project
                 </a>
             </div>
             <div class="info-card-body">
@@ -114,8 +114,8 @@
                 @else
                     <div class="empty-state">
                         <i class="bi bi-file-earmark-x"></i>
-                        <p class="mt-3 mb-0">No change orders</p>
-                        <small class="text-muted">Add a change order to track project modifications</small>
+                        <p class="mt-3 mb-0">No Additional projects</p>
+                        <small class="text-muted">Add an additional project to track project modifications</small>
                     </div>
                 @endif
             </div>
