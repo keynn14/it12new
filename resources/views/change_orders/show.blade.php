@@ -20,13 +20,28 @@
                 <i class="bi bi-x-circle"></i> Reject
             </button>
         @endif
-        <form action="{{ route('change-orders.destroy', $changeOrder) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this change order? This action cannot be undone.');">
+        @if($changeOrder->status !== 'cancelled' && $changeOrder->status !== 'approved')
+        <form action="{{ route('change-orders.cancel', $changeOrder) }}" method="POST" class="d-inline" id="cancelCOForm">
             @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-danger">
-                <i class="bi bi-trash"></i> Delete
+            <input type="hidden" name="cancellation_reason" id="cancelCOReason">
+            <button type="button" class="btn btn-warning" onclick="cancelCO()">
+                <i class="bi bi-x-circle"></i> Cancel
             </button>
         </form>
+        <script>
+            function cancelCO() {
+                if (confirm('Are you sure you want to cancel this Change Order?')) {
+                    let reason = prompt('Please provide a reason for cancellation (minimum 10 characters):');
+                    if (reason && reason.trim().length >= 10) {
+                        document.getElementById('cancelCOReason').value = reason.trim();
+                        document.getElementById('cancelCOForm').submit();
+                    } else if (reason !== null) {
+                        alert('Cancellation reason must be at least 10 characters.');
+                    }
+                }
+            }
+        </script>
+        @endif
         <a href="{{ route('change-orders.index') }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back
         </a>
@@ -396,24 +411,7 @@
         font-weight: 500;
     }
     
-    .modal-content {
-        border-radius: 16px;
-        border: 1px solid #e5e7eb;
-    }
-    
-    .modal-header {
-        border-bottom: 1px solid #e5e7eb;
-        padding: 1.5rem;
-    }
-    
-    .modal-body {
-        padding: 1.5rem;
-    }
-    
-    .modal-footer {
-        border-top: 1px solid #e5e7eb;
-        padding: 1.5rem;
-    }
 </style>
 @endpush
+
 @endsection

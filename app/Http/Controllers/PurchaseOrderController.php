@@ -38,6 +38,23 @@ class PurchaseOrderController extends Controller
         return view('purchase_orders.index', compact('purchaseOrders'));
     }
 
+    public function pending(Request $request)
+    {
+        $query = PurchaseOrder::with(['purchaseRequest', 'items.supplier'])
+            ->where('status', 'pending')
+            ->whereDoesntHave('goodsReceipts', function ($q) {
+                $q->where('status', 'approved');
+            });
+
+        if ($request->has('supplier_id')) {
+            $query->where('supplier_id', $request->supplier_id);
+        }
+
+        $purchaseOrders = $query->latest()->paginate(15);
+
+        return view('purchase_orders.pending', compact('purchaseOrders'));
+    }
+
     public function create(Request $request)
     {
         $quotation = null;
@@ -76,9 +93,45 @@ class PurchaseOrderController extends Controller
 
     public function print(PurchaseOrder $purchaseOrder)
     {
-        $purchaseOrder->load(['items.inventoryItem', 'items.supplier', 'createdBy', 'approvedBy']);
-        $pdf = Pdf::loadView('purchase_orders.print', compact('purchaseOrder'));
+        $purchaseOrder->load(['items.inventoryItem', 'items.supplier', 'createdBy', 'approvedBy', 'supplier', 'purchaseRequest.project']);
+        $printedBy = auth()->user();
+        $pdf = Pdf::loadView('purchase_orders.print', compact('purchaseOrder', 'printedBy'));
         return $pdf->download("PO-{$purchaseOrder->po_number}.pdf");
+    }
+
+    public function cancel(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        $validated = $request->validate([
+            'cancellation_reason' => 'required|string|min:10|max:1000',
+        ], [
+            'cancellation_reason.required' => 'Please provide a reason for cancellation.',
+            'cancellation_reason.min' => 'Cancellation reason must be at least 10 characters.',
+            'cancellation_reason.max' => 'Cancellation reason must not exceed 1000 characters.',
+        ]);
+
+        // Check if PO has approved goods receipts
+        if ($purchaseOrder->goodsReceipts()->where('status', 'approved')->exists()) {
+            return redirect()->back()->with('error', 'Cannot cancel purchase order that has approved goods receipts.');
+        }
+
+        // Cancel the PO with reason
+        $purchaseOrder->update([
+            'status' => 'cancelled',
+            'cancellation_reason' => $validated['cancellation_reason'],
+        ]);
+
+        // Revert quotation status back to pending/accepted if it exists
+        if ($purchaseOrder->quotation) {
+            $quotation = $purchaseOrder->quotation;
+            // If quotation was accepted, revert it back to accepted
+            // If it was pending, keep it pending
+            // We'll set it to pending so it can be used again
+            if ($quotation->status === 'accepted') {
+                $quotation->update(['status' => 'pending']);
+            }
+        }
+
+        return redirect()->route('purchase-orders.show', $purchaseOrder)->with('success', 'Purchase order cancelled successfully. The quotation has been reverted to pending status.');
     }
 
     public function destroy(PurchaseOrder $purchaseOrder)

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Project Details')
+@section('title', 'Project')
 
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center page-header">
@@ -9,8 +9,22 @@
         <p class="text-muted mb-0">{{ $project->project_code }}</p>
     </div>
     <div class="d-flex gap-2">
+        @if($project->status !== 'completed')
+        <form action="{{ route('projects.mark-as-done', $project) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to mark this project as done? This will move it to completed projects.');">
+            @csrf
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-circle"></i> Mark as Done
+            </button>
+        </form>
+        @else
+        <span class="badge badge-success d-flex align-items-center" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+            <i class="bi bi-check-circle-fill me-2"></i> Project Completed
+        </span>
+        @endif
+        @if($project->status !== 'completed')
         <a href="{{ route('projects.edit', $project) }}" class="btn btn-warning"><i class="bi bi-pencil"></i> Edit</a>
-        <a href="{{ route('projects.index') }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+        @endif
+        <a href="{{ $project->status === 'completed' ? route('projects.completed') : route('projects.index') }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back</a>
     </div>
 </div>
 
@@ -55,10 +69,20 @@
                         <span class="info-label">End Date</span>
                         <span class="info-value">{{ $project->end_date->format('M d, Y') }}</span>
                     </div>
+                    @if($project->actual_end_date)
+                    <div class="info-item">
+                        <span class="info-label">Actual Completion Date</span>
+                        <span class="info-value text-success fw-semibold">
+                            <i class="bi bi-check-circle"></i> {{ $project->actual_end_date->format('M d, Y') }}
+                        </span>
+                    </div>
+                    @endif
+                    @if(showPrices())
                     <div class="info-item">
                         <span class="info-label">Actual Cost</span>
                         <span class="info-value">₱{{ number_format($project->actual_cost ?? 0, 2) }}</span>
                     </div>
+                    @endif
                     <div class="info-item full-width">
                         <span class="info-label">Progress</span>
                         <div class="progress-wrapper">
@@ -88,9 +112,9 @@
         
         <div class="info-card">
             <div class="info-card-header">
-                <h5 class="info-card-title"><i class="bi bi-file-earmark-diff"></i> Additional Project</h5>
+                <h5 class="info-card-title"><i class="bi bi-file-earmark-diff"></i> Change Orders</h5>
                 <a href="{{ route('change-orders.create', ['project_id' => $project->id]) }}" class="btn btn-sm btn-primary">
-                    <i class="bi bi-plus-circle"></i> Add Additional Project
+                    <i class="bi bi-plus-circle"></i> Add Change Order
                 </a>
             </div>
             <div class="info-card-body">
@@ -126,8 +150,8 @@
                 @else
                     <div class="empty-state">
                         <i class="bi bi-file-earmark-x"></i>
-                        <p class="mt-3 mb-0">No Additional projects</p>
-                        <small class="text-muted">Add an additional project to track project modifications</small>
+                        <p class="mt-3 mb-0">No change orders</p>
+                        <small class="text-muted">Add a change order to track project modifications</small>
                     </div>
                 @endif
             </div>
@@ -320,16 +344,6 @@
                     <div class="quick-action-content">
                         <span class="quick-action-label">Issue Goods</span>
                         <small class="quick-action-desc">Issue materials to project</small>
-                    </div>
-                    <i class="bi bi-chevron-right"></i>
-                </a>
-                <a href="{{ route('fabrication.create', ['project_id' => $project->id]) }}" class="quick-action-btn">
-                    <div class="quick-action-icon bg-warning">
-                        <i class="bi bi-tools"></i>
-                    </div>
-                    <div class="quick-action-content">
-                        <span class="quick-action-label">Create Fabrication Job</span>
-                        <small class="quick-action-desc">Start a new fabrication job</small>
                     </div>
                     <i class="bi bi-chevron-right"></i>
                 </a>

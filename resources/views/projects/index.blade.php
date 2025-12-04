@@ -6,9 +6,23 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center page-header">
     <div>
         <h1 class="h2 mb-1"><i class="bi bi-folder"></i> Projects</h1>
-        <p class="text-muted mb-0">Manage and track all your construction projects</p>
+        <p class="text-muted mb-0">Manage and track all active construction projects</p>
     </div>
-    <a href="{{ route('projects.create') }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> New Project</a>
+    @php
+        $user = auth()->user();
+        $permissions = $user ? $user->getRolePermissions() : [];
+        $projectsPermission = $permissions['projects'] ?? 'no_access';
+        $canCreateProjects = $user && ($user->isAdmin() || $user->hasRole('project_manager'));
+        $canViewCompleted = $canCreateProjects;
+    @endphp
+    @if($canCreateProjects)
+    <div class="d-flex gap-2">
+        @if($canViewCompleted)
+        <a href="{{ route('projects.completed') }}" class="btn btn-success"><i class="bi bi-check-circle"></i> Completed Projects</a>
+        @endif
+        <a href="{{ route('projects.create') }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> New Project</a>
+    </div>
+    @endif
 </div>
 
 <div class="card project-card">
@@ -27,7 +41,6 @@
                         <option value="planning" {{ request('status') == 'planning' ? 'selected' : '' }}>Planning</option>
                         <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
                         <option value="on_hold" {{ request('status') == 'on_hold' ? 'selected' : '' }}>On Hold</option>
-                        <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -81,9 +94,11 @@
                                     <a href="{{ route('projects.show', $project) }}" class="btn btn-sm btn-action btn-view" title="View">
                                         <i class="bi bi-eye"></i>
                                     </a>
+                                    @if($canCreateProjects)
                                     <a href="{{ route('projects.edit', $project) }}" class="btn btn-sm btn-action btn-edit" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

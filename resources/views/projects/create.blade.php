@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Create Project')
+@section('title', 'New Project')
 
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center page-header">
@@ -22,7 +22,7 @@
                     <span><i class="bi bi-info-circle"></i> Basic Information</span>
                 </h5>
                 <div class="row g-3">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <label class="form-label-custom">
                             <i class="bi bi-folder"></i> Project Name <span class="text-danger">*</span>
                         </label>

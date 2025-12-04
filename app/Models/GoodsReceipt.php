@@ -18,6 +18,7 @@ class GoodsReceipt extends Model
         'status',
         'delivery_note_number',
         'remarks',
+        'cancellation_reason',
         'received_by',
         'approved_by',
         'approved_at',

@@ -12,13 +12,28 @@
         <a href="{{ route('purchase-orders.create', ['quotation_id' => $quotation->id]) }}" class="btn btn-success">
             <i class="bi bi-cart-check"></i> Create Purchase Order
         </a>
-        <form action="{{ route('quotations.destroy', $quotation) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this quotation? This action cannot be undone.');">
+        @if($quotation->status !== 'rejected' && !$quotation->purchaseOrders()->where('status', '!=', 'cancelled')->exists())
+        <form action="{{ route('quotations.cancel', $quotation) }}" method="POST" class="d-inline" id="cancelQuotationForm">
             @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-danger">
-                <i class="bi bi-trash"></i> Delete
+            <input type="hidden" name="cancellation_reason" id="cancelQuotationReason">
+            <button type="button" class="btn btn-warning" onclick="cancelQuotation()">
+                <i class="bi bi-x-circle"></i> Cancel
             </button>
         </form>
+        <script>
+            function cancelQuotation() {
+                if (confirm('Are you sure you want to cancel this Quotation?')) {
+                    let reason = prompt('Please provide a reason for cancellation (minimum 10 characters):');
+                    if (reason && reason.trim().length >= 10) {
+                        document.getElementById('cancelQuotationReason').value = reason.trim();
+                        document.getElementById('cancelQuotationForm').submit();
+                    } else if (reason !== null) {
+                        alert('Cancellation reason must be at least 10 characters.');
+                    }
+                }
+            }
+        </script>
+        @endif
         <a href="{{ route('quotations.index') }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back
         </a>
@@ -81,6 +96,16 @@
                     <div class="info-item full-width">
                         <span class="info-label">Notes</span>
                         <span class="info-value">{{ $quotation->notes }}</span>
+                    </div>
+                    @endif
+                    @if($quotation->status === 'rejected' && $quotation->cancellation_reason)
+                    <div class="info-item full-width">
+                        <span class="info-label">Cancellation Reason</span>
+                        <span class="info-value">
+                            <div class="alert alert-warning mb-0">
+                                <i class="bi bi-exclamation-triangle"></i> {{ $quotation->cancellation_reason }}
+                            </div>
+                        </span>
                     </div>
                     @endif
                 </div>
@@ -410,6 +435,24 @@
         font-size: 0.75rem;
         font-weight: 600;
     }
+    
+    /* Improved Modal Styling - Fixed Glitches */
+    .modal {
+        z-index: 1055 !important;
+    }
+    
+    .modal-backdrop {
+        z-index: 1050 !important;
+        background-color: rgba(0, 0, 0, 0.6) !important;
+    }
+    
+    .modal-dialog {
+        z-index: 1056 !important;
+        margin: 1.75rem auto;
+    }
+    
 </style>
 @endpush
+
+
 @endsection

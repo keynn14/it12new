@@ -37,7 +37,7 @@ class InventoryController extends Controller
             });
         }
 
-        $items = $query->latest()->paginate(15);
+        $items = $query->latest()->paginate(10);
 
         // Add current stock to each item
         $items->getCollection()->transform(function ($item) {
@@ -61,7 +61,7 @@ class InventoryController extends Controller
             'description' => 'nullable|string',
             'category' => 'nullable|string',
             'unit_of_measure' => 'required|string',
-            'unit_cost' => 'required|numeric|min:0',
+            'unit_cost' => 'nullable|numeric|min:0',
             'reorder_level' => 'nullable|numeric|min:0',
             'reorder_quantity' => 'nullable|numeric|min:0',
             'item_type' => 'required|in:raw_material,finished_good,consumable,tool',
@@ -69,6 +69,11 @@ class InventoryController extends Controller
         ]);
 
         $validated['item_code'] = 'ITM-' . strtoupper(Str::random(8));
+        
+        // Ensure unit_cost defaults to 0 if null or empty
+        if (!isset($validated['unit_cost']) || $validated['unit_cost'] === null || $validated['unit_cost'] === '') {
+            $validated['unit_cost'] = 0;
+        }
 
         $item = InventoryItem::create($validated);
 
@@ -98,12 +103,17 @@ class InventoryController extends Controller
             'description' => 'nullable|string',
             'category' => 'nullable|string',
             'unit_of_measure' => 'required|string',
-            'unit_cost' => 'required|numeric|min:0',
+            'unit_cost' => 'nullable|numeric|min:0',
             'reorder_level' => 'nullable|numeric|min:0',
             'reorder_quantity' => 'nullable|numeric|min:0',
             'item_type' => 'required|in:raw_material,finished_good,consumable,tool',
             'status' => 'required|in:active,inactive',
         ]);
+
+        // Ensure unit_cost defaults to 0 if null or empty
+        if (!isset($validated['unit_cost']) || $validated['unit_cost'] === null || $validated['unit_cost'] === '') {
+            $validated['unit_cost'] = 0;
+        }
 
         $inventoryItem->update($validated);
 

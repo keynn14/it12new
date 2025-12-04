@@ -24,7 +24,7 @@ class SupplierController extends Controller
             });
         }
 
-        $suppliers = $query->latest()->paginate(15);
+        $suppliers = $query->latest()->paginate(10);
 
         return view('suppliers.index', compact('suppliers'));
     }
@@ -65,11 +65,16 @@ class SupplierController extends Controller
     {
         $validated = $request->validate([
             'inventory_item_id' => 'required|exists:inventory_items,id',
-            'unit_price' => 'required|numeric|min:0',
+            'unit_price' => 'nullable|numeric|min:0',
             'effective_date' => 'nullable|date',
             'expiry_date' => 'nullable|date|after:effective_date',
             'notes' => 'nullable|string',
         ]);
+
+        // Ensure unit_price defaults to 0 if null or empty
+        if (!isset($validated['unit_price']) || $validated['unit_price'] === null || $validated['unit_price'] === '') {
+            $validated['unit_price'] = 0;
+        }
 
         \App\Models\SupplierPrice::updateOrCreate(
             [
@@ -77,7 +82,7 @@ class SupplierController extends Controller
                 'inventory_item_id' => $validated['inventory_item_id'],
             ],
             [
-                'unit_price' => $validated['unit_price'],
+                'unit_price' => $validated['unit_price'] ?? 0,
                 'effective_date' => $validated['effective_date'] ?? now(),
                 'expiry_date' => $validated['expiry_date'] ?? null,
                 'notes' => $validated['notes'] ?? null,
@@ -94,11 +99,16 @@ class SupplierController extends Controller
             ->firstOrFail();
 
         $validated = $request->validate([
-            'unit_price' => 'required|numeric|min:0',
+            'unit_price' => 'nullable|numeric|min:0',
             'effective_date' => 'nullable|date',
             'expiry_date' => 'nullable|date|after:effective_date',
             'notes' => 'nullable|string',
         ]);
+
+        // Ensure unit_price defaults to 0 if null or empty
+        if (!isset($validated['unit_price']) || $validated['unit_price'] === null || $validated['unit_price'] === '') {
+            $validated['unit_price'] = 0;
+        }
 
         $price->update([
             'unit_price' => $validated['unit_price'],

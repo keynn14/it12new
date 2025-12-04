@@ -17,6 +17,7 @@
             <table class="table table-modern">
                 <thead>
                     <tr>
+                        <th>#</th>
                         <th>Code</th>
                         <th>Name</th>
                         <th>Contact Person</th>
@@ -27,8 +28,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($suppliers as $supplier)
+                    @forelse($suppliers as $index => $supplier)
                         <tr>
+                            <td><span class="text-muted">{{ ($suppliers->currentPage() - 1) * $suppliers->perPage() + $index + 1 }}</span></td>
                             <td><span class="text-muted font-monospace">{{ $supplier->code }}</span></td>
                             <td>
                                 <div class="fw-semibold">{{ $supplier->name }}</div>
@@ -72,7 +74,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5">
+                            <td colspan="8" class="text-center py-5">
                                 <div class="empty-state">
                                     <i class="bi bi-truck"></i>
                                     <p class="mt-3 mb-0">No suppliers found</p>

@@ -24,7 +24,7 @@
                     <span><i class="bi bi-info-circle"></i> Order Information</span>
                 </h5>
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label-custom">
                             <i class="bi bi-calendar-check"></i> Expected Delivery Date
                         </label>

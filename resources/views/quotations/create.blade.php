@@ -22,7 +22,7 @@
                     <span><i class="bi bi-info-circle"></i> Quotation Information</span>
                 </h5>
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label class="form-label-custom">
                             <i class="bi bi-file-earmark-text"></i> Purchase Request <span class="text-danger">*</span>
                         </label>
@@ -41,7 +41,7 @@
                         @enderror
                         <small class="form-help-text">Select an approved purchase request</small>
                     </div>
-                    <div class="col-md-12">
+                    <div class="col-md-4">
                         <label class="form-label-custom">
                             <i class="bi bi-calendar-event"></i> Quotation Date <span class="text-danger">*</span>
                         </label>
@@ -52,7 +52,7 @@
                             </div>
                         @enderror
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label-custom">
                             <i class="bi bi-calendar-check"></i> Valid Until <span class="text-danger">*</span>
                         </label>

@@ -43,7 +43,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role_id' => 'nullable|exists:roles,id',
+            'role_id' => 'required|exists:roles,id',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
@@ -71,7 +71,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
-            'role_id' => 'nullable|exists:roles,id',
+            'role_id' => 'required|exists:roles,id',
         ]);
 
         if (isset($validated['password'])) {
@@ -83,6 +83,31 @@ class UserController extends Controller
         $user->update($validated);
 
         return redirect()->route('users.show', $user)->with('success', 'User updated successfully.');
+    }
+
+    public function cancel(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'cancellation_reason' => 'required|string|min:10|max:1000',
+        ], [
+            'cancellation_reason.required' => 'Please provide a reason for cancellation.',
+            'cancellation_reason.min' => 'Cancellation reason must be at least 10 characters.',
+            'cancellation_reason.max' => 'Cancellation reason must not exceed 1000 characters.',
+        ]);
+
+        // Check if user is the current authenticated user
+        if ($user->id === auth()->id()) {
+            return redirect()->back()->with('error', 'You cannot cancel your own account.');
+        }
+
+        // Store cancellation reason and delete user
+        $user->update([
+            'cancellation_reason' => $validated['cancellation_reason'],
+        ]);
+        
+        $user->delete();
+
+        return redirect()->route('users.index')->with('success', 'User cancelled and deleted successfully.');
     }
 
     public function destroy(User $user)

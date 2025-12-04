@@ -22,6 +22,7 @@ class ChangeOrder extends Model
         'approved_by',
         'approved_at',
         'approval_notes',
+        'cancellation_reason',
     ];
 
     protected function casts(): array

@@ -57,7 +57,7 @@ class QuotationController extends Controller
             'items.*.inventory_item_id' => 'required|exists:inventory_items,id',
             'items.*.supplier_id' => 'required|exists:suppliers,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.unit_price' => 'nullable|numeric|min:0',
             'items.*.specifications' => 'nullable|string',
         ]);
 
@@ -124,6 +124,40 @@ class QuotationController extends Controller
         }
 
         return response()->json($prices);
+    }
+
+    public function cancel(Request $request, Quotation $quotation)
+    {
+        $validated = $request->validate([
+            'cancellation_reason' => 'required|string|min:10|max:1000',
+        ], [
+            'cancellation_reason.required' => 'Please provide a reason for cancellation.',
+            'cancellation_reason.min' => 'Cancellation reason must be at least 10 characters.',
+            'cancellation_reason.max' => 'Cancellation reason must not exceed 1000 characters.',
+        ]);
+
+        // Check if quotation has been converted to PO (and PO is not cancelled)
+        $activePOs = $quotation->purchaseOrders()->where('status', '!=', 'cancelled')->exists();
+        if ($activePOs) {
+            return redirect()->back()->with('error', 'Cannot cancel quotation that has active purchase orders. Please cancel the purchase orders first.');
+        }
+
+        // Cancel the quotation with reason
+        $quotation->update([
+            'status' => 'rejected',
+            'cancellation_reason' => $validated['cancellation_reason'],
+        ]);
+
+        // Revert purchase request status back to approved if it exists
+        if ($quotation->purchaseRequest) {
+            $purchaseRequest = $quotation->purchaseRequest;
+            // Only revert if PR status is not already approved
+            if ($purchaseRequest->status !== 'approved') {
+                $purchaseRequest->update(['status' => 'approved']);
+            }
+        }
+
+        return redirect()->route('quotations.show', $quotation)->with('success', 'Quotation cancelled successfully. The purchase request has been reverted to approved status.');
     }
 
     public function destroy(Quotation $quotation)

@@ -22,7 +22,7 @@
                     <span><i class="bi bi-info-circle"></i> Basic Information</span>
                 </h5>
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label class="form-label-custom">
                             <i class="bi bi-tag"></i> Name <span class="text-danger">*</span>
                         </label>
@@ -34,7 +34,7 @@
                         @enderror
                         <small class="form-help-text">Enter a descriptive name for the item</small>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label-custom">
                             <i class="bi bi-grid"></i> Item Type <span class="text-danger">*</span>
                         </label>
@@ -73,6 +73,7 @@
                         @enderror
                         <small class="form-help-text">Unit of measurement (pcs, kg, m, etc.)</small>
                     </div>
+                    @if(showPrices())
                     <div class="col-md-4">
                         <label class="form-label-custom">
                             <i class="bi bi-cash-stack"></i> Unit Cost <span class="text-danger">*</span>
@@ -88,6 +89,9 @@
                         @enderror
                         <small class="form-help-text">Cost per unit</small>
                     </div>
+                    @else
+                    <input type="hidden" name="unit_cost" value="0">
+                    @endif
                     <div class="col-md-4">
                         <label class="form-label-custom">
                             <i class="bi bi-toggle-on"></i> Status <span class="text-danger">*</span>

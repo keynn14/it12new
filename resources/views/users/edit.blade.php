@@ -23,7 +23,7 @@
                     <span><i class="bi bi-person"></i> Personal Information</span>
                 </h5>
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label class="form-label-custom">
                             <i class="bi bi-person"></i> Full Name <span class="text-danger">*</span>
                         </label>
@@ -35,7 +35,7 @@
                         @enderror
                         <small class="form-help-text">Enter the user's full name</small>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label class="form-label-custom">
                             <i class="bi bi-envelope"></i> Email Address <span class="text-danger">*</span>
                         </label>
@@ -116,12 +116,16 @@
                 <div class="row g-3">
                     <div class="col-md-12">
                         <label class="form-label-custom">
-                            <i class="bi bi-shield-check"></i> Role
+                            <i class="bi bi-shield-check"></i> Role & Permissions <span class="text-danger">*</span>
                         </label>
-                        <select name="role_id" class="form-control-custom @error('role_id') is-invalid @enderror">
-                            <option value="">No Role</option>
+                        <select name="role_id" id="role_id" class="form-control-custom @error('role_id') is-invalid @enderror" required>
+                            <option value="">Select a Role</option>
                             @foreach($roles as $role)
-                                <option value="{{ $role->id }}" {{ old('role_id', $user->role_id) == $role->id ? 'selected' : '' }}>{{ $role->name }}</option>
+                                <option value="{{ $role->id }}" 
+                                    data-description="{{ $role->description }}"
+                                    {{ old('role_id', $user->role_id) == $role->id ? 'selected' : '' }}>
+                                    {{ $role->name }}
+                                </option>
                             @endforeach
                         </select>
                         @error('role_id')
@@ -129,7 +133,14 @@
                                 <i class="bi bi-exclamation-circle"></i> {{ $message }}
                             </div>
                         @enderror
-                        <small class="form-help-text">Assign a role to define user permissions</small>
+                        <div id="role-description" class="role-description mt-2" style="display: none;">
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Role Description:</strong>
+                                <p class="mb-0 mt-1" id="role-description-text"></p>
+                            </div>
+                        </div>
+                        <small class="form-help-text">Select a role to define what modules and actions this user can access</small>
                     </div>
                 </div>
             </div>
@@ -383,6 +394,27 @@
         background: #f3f4f6;
         transform: translateY(-2px);
     }
+    
+    .role-description {
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .role-description .alert {
+        border-left: 4px solid #3b82f6;
+        background: #eff6ff;
+        border-color: #bfdbfe;
+    }
 </style>
 @endpush
 
@@ -488,6 +520,38 @@
         }
     });
     
+    // Role description display
+    const roleSelect = document.getElementById('role_id');
+    const roleDescription = document.getElementById('role-description');
+    const roleDescriptionText = document.getElementById('role-description-text');
+    
+    if (roleSelect) {
+        // Show description on page load if role is already selected
+        const selectedOption = roleSelect.options[roleSelect.selectedIndex];
+        if (selectedOption && selectedOption.value) {
+            const description = selectedOption.getAttribute('data-description');
+            if (description) {
+                roleDescriptionText.textContent = description;
+                roleDescription.style.display = 'block';
+            }
+        }
+        
+        roleSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                const description = selectedOption.getAttribute('data-description');
+                if (description) {
+                    roleDescriptionText.textContent = description;
+                    roleDescription.style.display = 'block';
+                } else {
+                    roleDescription.style.display = 'none';
+                }
+            } else {
+                roleDescription.style.display = 'none';
+            }
+        });
+    }
+    
     document.getElementById('userForm')?.addEventListener('submit', function(e) {
         const form = this;
         const submitBtn = form.querySelector('.btn-submit');
@@ -495,6 +559,15 @@
         
         const password = document.getElementById('password').value;
         const passwordConfirmation = document.getElementById('password_confirmation').value;
+        
+        // Validate role selection
+        const roleId = document.getElementById('role_id').value;
+        if (!roleId) {
+            e.preventDefault();
+            alert('Please select a role for the user.');
+            document.getElementById('role_id').focus();
+            return false;
+        }
         
         // Only validate if password fields are filled
         if (password || passwordConfirmation) {

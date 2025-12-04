@@ -86,23 +86,33 @@ class ReportsController extends Controller
 
     protected function exportReport($data, $reportName, $format)
     {
+        $printedBy = auth()->user();
+        $filters = request()->except(['export']);
+        
         switch ($format) {
             case 'pdf':
                 try {
-                    $pdf = Pdf::loadView("reports.pdf.{$reportName}", compact('data'));
+                    // Try to load dedicated PDF view
+                    $pdfView = "reports.pdf.{$reportName}";
+                    if (view()->exists($pdfView)) {
+                        $pdf = Pdf::loadView($pdfView, compact('data', 'printedBy', 'filters'));
+                    } else {
+                        // Fallback to regular view
+                        $view = "reports.{$reportName}";
+                        if (!view()->exists($view)) {
+                            return redirect()->back()->with('error', 'PDF export template not found.');
+                        }
+                        $pdf = Pdf::loadView($view, compact('data', 'printedBy', 'filters'));
+                    }
                     return $pdf->download("{$reportName}_" . date('Y-m-d') . ".pdf");
                 } catch (\Exception $e) {
-                    // Fallback to simple view if PDF template doesn't exist
-                    $view = "reports.{$reportName}";
-                    if (!view()->exists($view)) {
-                        return redirect()->back()->with('error', 'PDF export template not found.');
-                    }
-                    $pdf = Pdf::loadView($view, compact('data'));
-                    return $pdf->download("{$reportName}_" . date('Y-m-d') . ".pdf");
+                    \Log::error('PDF Export Error: ' . $e->getMessage());
+                    return redirect()->back()->with('error', 'Error generating PDF: ' . $e->getMessage());
                 }
 
             case 'csv':
-                return $this->reportService->exportToCsv($data, $reportName);
+            case 'excel':
+                return $this->reportService->exportToCsv($data, $reportName, $format === 'excel');
 
             case 'json':
                 return response()->json($data);

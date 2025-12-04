@@ -57,10 +57,12 @@
                         <span class="info-label">Unit of Measure</span>
                         <span class="info-value">{{ $inventoryItem->unit_of_measure }}</span>
                     </div>
+                    @if(showPrices())
                     <div class="info-item">
                         <span class="info-label">Unit Cost</span>
                         <span class="info-value">₱{{ number_format($inventoryItem->unit_cost, 2) }}</span>
                     </div>
+                    @endif
                     <div class="info-item full-width">
                         <span class="info-label">Current Stock</span>
                         <div class="stock-display">

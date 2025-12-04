@@ -75,13 +75,15 @@
                                     <a href="{{ route('purchase-orders.print', $po) }}" class="btn btn-sm btn-action btn-print" title="Print">
                                         <i class="bi bi-printer"></i>
                                     </a>
-                                    <form action="{{ route('purchase-orders.destroy', $po) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this purchase order? This action cannot be undone.');">
+                                    @if($po->status !== 'cancelled')
+                                    <form action="{{ route('purchase-orders.cancel', $po) }}" method="POST" class="d-inline cancel-form" data-id="{{ $po->id }}">
                                         @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-action btn-danger" title="Delete">
-                                            <i class="bi bi-trash"></i>
+                                        <input type="hidden" name="cancellation_reason" class="cancel-reason-input">
+                                        <button type="button" class="btn btn-sm btn-action btn-warning cancel-btn" title="Cancel">
+                                            <i class="bi bi-x-circle"></i>
                                         </button>
                                     </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -113,6 +115,7 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         border: 1px solid #e5e7eb;
     }
+    
     
     .table-modern {
         margin-bottom: 0;
@@ -183,6 +186,18 @@
         color: #ffffff;
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(55, 65, 81, 0.3);
+    }
+    
+    .btn-warning {
+        background: #fef3c7;
+        color: #d97706;
+    }
+    
+    .btn-warning:hover {
+        background: #d97706;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(217, 119, 6, 0.3);
     }
     
     .btn-danger {
@@ -259,6 +274,29 @@
         font-weight: 600;
         color: #374151;
     }
+    
 </style>
 @endpush
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.cancel-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const form = this.closest('.cancel-form');
+                if (confirm('Are you sure you want to cancel this Purchase Order?')) {
+                    let reason = prompt('Please provide a reason for cancellation (minimum 10 characters):');
+                    if (reason && reason.trim().length >= 10) {
+                        form.querySelector('.cancel-reason-input').value = reason.trim();
+                        form.submit();
+                    } else if (reason !== null) {
+                        alert('Cancellation reason must be at least 10 characters.');
+                    }
+                }
+            });
+        });
+    });
+</script>
+@endpush
+
 @endsection

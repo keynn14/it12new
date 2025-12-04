@@ -6,7 +6,7 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center page-header">
     <div>
         <h1 class="h2 mb-1"><i class="bi bi-box-arrow-right"></i> Create Goods Issue</h1>
-        <p class="text-muted mb-0">Issue materials for projects or fabrication jobs</p>
+        <p class="text-muted mb-0">Issue materials for projects and work orders</p>
     </div>
     <a href="{{ route('material-issuance.index') }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back</a>
 </div>
@@ -22,7 +22,7 @@
                     <span><i class="bi bi-info-circle"></i> Issue Information</span>
                 </h5>
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label class="form-label-custom">
                             <i class="bi bi-briefcase"></i> Project
                         </label>
@@ -39,22 +39,35 @@
                         @enderror
                         <small class="form-help-text">Select a project if issuing for a specific project</small>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label-custom">
-                            <i class="bi bi-tools"></i> Fabrication Job
+                            <i class="bi bi-tag"></i> Issuance Type <span class="text-danger">*</span>
                         </label>
-                        <select name="fabrication_job_id" class="form-control-custom @error('fabrication_job_id') is-invalid @enderror">
-                            <option value="">Select Fabrication Job (Optional)</option>
-                            @foreach(\App\Models\FabricationJob::all() as $job)
-                                <option value="{{ $job->id }}" {{ (request('fabrication_job_id') == $job->id || old('fabrication_job_id') == $job->id) ? 'selected' : '' }}>{{ $job->job_number }}</option>
-                            @endforeach
+                        <select name="issuance_type" class="form-control-custom @error('issuance_type') is-invalid @enderror" required>
+                            <option value="project" {{ old('issuance_type', 'project') == 'project' ? 'selected' : '' }}>Project</option>
+                            <option value="maintenance" {{ old('issuance_type') == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
+                            <option value="general" {{ old('issuance_type') == 'general' ? 'selected' : '' }}>General</option>
+                            <option value="repair" {{ old('issuance_type') == 'repair' ? 'selected' : '' }}>Repair</option>
+                            <option value="other" {{ old('issuance_type') == 'other' ? 'selected' : '' }}>Other</option>
                         </select>
-                        @error('fabrication_job_id')
+                        @error('issuance_type')
                             <div class="invalid-feedback-custom">
                                 <i class="bi bi-exclamation-circle"></i> {{ $message }}
                             </div>
                         @enderror
-                        <small class="form-help-text">Select a fabrication job if issuing for a specific job</small>
+                        <small class="form-help-text">Select the type of issuance</small>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label-custom">
+                            <i class="bi bi-file-earmark-text"></i> Work Order Number
+                        </label>
+                        <input type="text" name="work_order_number" class="form-control-custom @error('work_order_number') is-invalid @enderror" value="{{ old('work_order_number') }}" placeholder="Enter work order number (optional)">
+                        @error('work_order_number')
+                            <div class="invalid-feedback-custom">
+                                <i class="bi bi-exclamation-circle"></i> {{ $message }}
+                            </div>
+                        @enderror
+                        <small class="form-help-text">Optional work order or reference number</small>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label-custom">
@@ -111,6 +124,7 @@
                                 <input type="number" step="0.01" min="0" name="items[0][quantity]" class="form-control-custom quantity-input" placeholder="0.00" required>
                                 <small class="form-help-text stock-info" style="display: none;"></small>
                             </div>
+                            @if(showPrices())
                             <div class="col-md-2">
                                 <label class="form-label-custom">
                                     <i class="bi bi-cash-stack"></i> Unit Cost (₱)
@@ -120,6 +134,9 @@
                                     <input type="number" step="0.01" min="0" name="items[0][unit_cost]" class="form-control-custom" placeholder="0.00">
                                 </div>
                             </div>
+                            @else
+                            <input type="hidden" name="items[0][unit_cost]" value="0">
+                            @endif
                             <div class="col-md-2">
                                 <label class="form-label-custom">
                                     <i class="bi bi-chat-left-text"></i> Notes

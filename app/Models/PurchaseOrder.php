@@ -28,6 +28,7 @@ class PurchaseOrder extends Model
         'approved_by',
         'approved_at',
         'notes',
+        'cancellation_reason',
     ];
 
     protected function casts(): array

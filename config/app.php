@@ -123,4 +123,17 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Price Visibility Configuration
+    |--------------------------------------------------------------------------
+    |
+    | This option controls whether prices and costs are displayed in the UI.
+    | Set to false to hide all prices, costs, and financial information
+    | from the user interface while keeping data in the database.
+    |
+    */
+
+    'show_prices' => env('SHOW_PRICES', false),
+
 ];

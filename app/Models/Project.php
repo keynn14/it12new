@@ -23,6 +23,7 @@ class Project extends Model
         'actual_cost',
         'progress_percentage',
         'notes',
+        'cancellation_reason',
     ];
 
     protected function casts(): array
@@ -54,11 +55,6 @@ class Project extends Model
     public function materialIssuances()
     {
         return $this->hasMany(MaterialIssuance::class);
-    }
-
-    public function fabricationJobs()
-    {
-        return $this->hasMany(FabricationJob::class);
     }
 
     public function quotations()

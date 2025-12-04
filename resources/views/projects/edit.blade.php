@@ -13,14 +13,14 @@
 
 <div class="form-card">
     <div class="form-card-body">
-        <form method="POST" action="{{ route('projects.update', $project) }}" id="projectForm">
+        <form method="POST" action="{{ route('projects.update', $project) }}" id="projectForm" onsubmit="return confirmUpdate()">
             @csrf
             @method('PUT')
             
             <div class="form-section">
                 <h5 class="form-section-title"><i class="bi bi-info-circle"></i> Basic Information</h5>
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label class="form-label-custom">Project Name <span class="text-danger">*</span></label>
                         <input type="text" name="name" class="form-control-custom @error('name') is-invalid @enderror" value="{{ old('name', $project->name) }}" placeholder="e.g., Building Construction - Phase 1" maxlength="255" required>
                         @error('name')
@@ -29,7 +29,7 @@
                         <small class="form-help-text">Clear and descriptive project name (max 255 characters)</small>
                     </div>
                     
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label-custom">Status <span class="text-danger">*</span></label>
                         <select name="status" class="form-control-custom @error('status') is-invalid @enderror" required>
                             <option value="planning" {{ old('status', $project->status) == 'planning' ? 'selected' : '' }}>Planning</option>
@@ -74,6 +74,7 @@
                 </div>
             </div>
             
+            @if(showPrices())
             <div class="form-section">
                 <h5 class="form-section-title"><i class="bi bi-cash-stack"></i> Costs</h5>
                 <div class="row g-3">
@@ -86,6 +87,9 @@
                     </div>
                 </div>
             </div>
+            @else
+            <input type="hidden" name="actual_cost" value="{{ old('actual_cost', $project->actual_cost ?? 0) }}">
+            @endif
             
             <div class="form-section">
                 <h5 class="form-section-title"><i class="bi bi-person-badge"></i> Project Manager</h5>
@@ -519,6 +523,34 @@
             });
         }
     }
+    
+    // Store original status for comparison
+    const originalStatus = '{{ $project->status }}';
+    
+    // Confirmation function for form submission
+    window.confirmUpdate = function() {
+        const currentStatus = document.querySelector('select[name="status"]').value;
+        let message = 'Are you sure you want to update this project?';
+        
+        // If status is being changed, add specific message
+        if (currentStatus !== originalStatus) {
+            const statusNames = {
+                'planning': 'Planning',
+                'active': 'Active',
+                'on_hold': 'On Hold',
+                'completed': 'Completed',
+                'cancelled': 'Cancelled'
+            };
+            message = `Are you sure you want to update this project?\n\nStatus will be changed from "${statusNames[originalStatus]}" to "${statusNames[currentStatus]}".`;
+            
+            // Special message if changing to completed
+            if (currentStatus === 'completed') {
+                message += '\n\nNote: This will move the project to completed projects.';
+            }
+        }
+        
+        return confirm(message);
+    };
 </script>
 @endpush
 @endsection

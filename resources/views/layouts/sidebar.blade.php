@@ -1,11 +1,35 @@
 @php
+    $user = auth()->user();
+    
+    // Navigation visibility checks (following Golden Rule: only show if user can perform actions)
+    $showDashboard = !$user || $user->isAdmin() || $user->shouldShowModuleInNavigation('dashboard');
+    $showProjects = $user && $user->shouldShowModuleInNavigation('projects');
+    $showChangeOrders = $user && $user->shouldShowModuleInNavigation('change_orders');
+    $showPurchaseRequests = $user && $user->shouldShowModuleInNavigation('purchase_requests');
+    $showQuotations = $user && $user->shouldShowModuleInNavigation('quotations');
+    $showPurchaseOrders = $user && $user->shouldShowModuleInNavigation('purchase_orders');
+    $showGoodsReceipts = $user && $user->shouldShowModuleInNavigation('goods_receipts');
+    $showGoodsReturns = $user && $user->shouldShowModuleInNavigation('goods_returns');
+    $showInventory = $user && $user->shouldShowModuleInNavigation('inventory');
+    $showMaterialIssuance = $user && $user->shouldShowModuleInNavigation('material_issuance');
+    $showSuppliers = $user && $user->shouldShowModuleInNavigation('suppliers');
+    $showReports = $user && $user->shouldShowModuleInNavigation('reports');
+    $showUsers = $user && $user->shouldShowModuleInNavigation('users');
+    
+    // Check if purchasing menu should be shown (only if at least one sub-item is visible)
+    $showPurchasingMenu = $showPurchaseRequests || $showQuotations || $showPurchaseOrders;
+    
+    // Check if inventory menu should be shown (only if at least one sub-item is visible)
+    $showInventoryMenu = $showInventory || $showGoodsReceipts || $showGoodsReturns || $showMaterialIssuance;
+    
+    // Active state checks
     $purchasingActive = request()->routeIs('purchase-requests.*') ||
         request()->routeIs('quotations.*') ||
-        request()->routeIs('purchase-orders.*') ||
-        request()->routeIs('goods-returns.*');
+        request()->routeIs('purchase-orders.*');
     
     $inventoryActive = request()->routeIs('inventory.*') ||
         request()->routeIs('goods-receipts.*') ||
+        request()->routeIs('goods-returns.*') ||
         request()->routeIs('material-issuance.*');
 @endphp
 
@@ -18,18 +42,39 @@
         </div>
         
         <ul class="nav flex-column mb-4">
+            @if($showDashboard)
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
             </li>
+            @endif
             
+            @if($showProjects)
             <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('projects.*') ? 'active' : '' }}" href="{{ route('projects.index') }}">
+                <a class="nav-link {{ request()->routeIs('projects.index') || request()->routeIs('projects.create') || request()->routeIs('projects.edit') || request()->routeIs('projects.show') ? 'active' : '' }}" href="{{ route('projects.index') }}">
                     <i class="bi bi-folder"></i> Projects
                 </a>
             </li>
+            @endif
             
+            @if($showProjects && $user && ($user->isAdmin() || $user->hasRole('project_manager')))
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('projects.completed') ? 'active' : '' }}" href="{{ route('projects.completed') }}">
+                    <i class="bi bi-check-circle"></i> Completed Projects
+                </a>
+            </li>
+            @endif
+            
+            @if($showChangeOrders)
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('change-orders.*') ? 'active' : '' }}" href="{{ route('change-orders.index') }}">
+                    <i class="bi bi-arrow-repeat"></i> Change Orders
+                </a>
+            </li>
+            @endif
+            
+            @if($showPurchasingMenu)
             <li class="nav-item">
                 <button class="nav-link nav-link-group {{ $purchasingActive ? 'active' : '' }}" type="button" data-bs-toggle="collapse" data-bs-target="#purchasingMenu" aria-expanded="{{ $purchasingActive ? 'true' : 'false' }}">
                     <span><i class="bi bi-bag-check me-2"></i>Purchasing</span>
@@ -37,30 +82,33 @@
                 </button>
                 <div class="collapse {{ $purchasingActive ? 'show' : '' }}" id="purchasingMenu">
                     <ul class="nav flex-column sub-nav">
+                        @if($showPurchaseRequests)
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('purchase-requests.*') ? 'active' : '' }}" href="{{ route('purchase-requests.index') }}">
                                 <i class="bi bi-file-earmark-text"></i> Purchase Requests
                             </a>
                         </li>
+                        @endif
+                        @if($showQuotations)
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('quotations.*') ? 'active' : '' }}" href="{{ route('quotations.index') }}">
                                 <i class="bi bi-file-earmark-spreadsheet"></i> Quotations
                             </a>
                         </li>
+                        @endif
+                        @if($showPurchaseOrders)
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('purchase-orders.*') ? 'active' : '' }}" href="{{ route('purchase-orders.index') }}">
                                 <i class="bi bi-cart-check"></i> Purchase Orders
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('goods-returns.*') ? 'active' : '' }}" href="{{ route('goods-returns.index') }}">
-                                <i class="bi bi-box-arrow-up"></i> Goods Returns
-                            </a>
-                        </li>
+                        @endif
                     </ul>
                 </div>
             </li>
+            @endif
             
+            @if($showInventoryMenu)
             <li class="nav-item">
                 <button class="nav-link nav-link-group {{ $inventoryActive ? 'active' : '' }}" type="button" data-bs-toggle="collapse" data-bs-target="#inventoryMenu" aria-expanded="{{ $inventoryActive ? 'true' : 'false' }}">
                     <span><i class="bi bi-boxes me-2"></i>Inventory Management</span>
@@ -68,48 +116,62 @@
                 </button>
                 <div class="collapse {{ $inventoryActive ? 'show' : '' }}" id="inventoryMenu">
                     <ul class="nav flex-column sub-nav">
+                        @if($showInventory)
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('inventory.*') ? 'active' : '' }}" href="{{ route('inventory.index') }}">
                                 <i class="bi bi-list-ul"></i> Goods List
                             </a>
                         </li>
+                        @endif
+                        @if($showGoodsReceipts)
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('goods-receipts.*') ? 'active' : '' }}" href="{{ route('goods-receipts.index') }}">
                                 <i class="bi bi-box-arrow-in-down"></i> Goods Receipts
                             </a>
                         </li>
+                        @endif
+                        @if($showGoodsReturns)
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('goods-returns.*') ? 'active' : '' }}" href="{{ route('goods-returns.index') }}">
+                                <i class="bi bi-box-arrow-up"></i> Goods Returns
+                            </a>
+                        </li>
+                        @endif
+                        @if($showMaterialIssuance)
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('material-issuance.*') ? 'active' : '' }}" href="{{ route('material-issuance.index') }}">
                                 <i class="bi bi-box-arrow-right"></i> Goods Issue
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </div>
             </li>
+            @endif
             
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('fabrication.*') ? 'active' : '' }}" href="{{ route('fabrication.index') }}">
-                    <i class="bi bi-tools"></i> Fabrication
-                </a>
-            </li>
-            
+            @if($showSuppliers)
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('suppliers.*') ? 'active' : '' }}" href="{{ route('suppliers.index') }}">
                     <i class="bi bi-truck"></i> Suppliers
                 </a>
             </li>
+            @endif
             
+            @if($showReports)
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.index') }}">
                     <i class="bi bi-graph-up"></i> Reports
                 </a>
             </li>
+            @endif
             
+            @if($showUsers)
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
                     <i class="bi bi-people"></i> Users
                 </a>
             </li>
+            @endif
         </ul>
 
         <div class="sidebar-footer mt-auto text-white">
@@ -121,6 +183,11 @@
                     <div>
                         <div class="fw-semibold">{{ auth()->user()->name ?? 'User' }}</div>
                         <small class="text-white-50">{{ auth()->user()->email ?? 'user@example.com' }}</small>
+                        @if(auth()->user() && auth()->user()->role)
+                        <div class="mt-1">
+                            <span class="badge bg-primary" style="font-size: 0.7rem;">{{ auth()->user()->role->name }}</span>
+                        </div>
+                        @endif
                     </div>
                 </div>
                 <div class="dropdown">

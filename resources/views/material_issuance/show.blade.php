@@ -25,13 +25,28 @@
                 </button>
             </form>
         @endif
-        <form action="{{ route('material-issuance.destroy', $materialIssuance) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this material issuance? This action cannot be undone.');">
+        @if($materialIssuance->status !== 'cancelled' && $materialIssuance->status !== 'issued')
+        <form action="{{ route('material-issuance.cancel', $materialIssuance) }}" method="POST" class="d-inline" id="cancelMIForm">
             @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-danger">
-                <i class="bi bi-trash"></i> Delete
+            <input type="hidden" name="cancellation_reason" id="cancelMIReason">
+            <button type="button" class="btn btn-warning" onclick="cancelMI()">
+                <i class="bi bi-x-circle"></i> Cancel
             </button>
         </form>
+        <script>
+            function cancelMI() {
+                if (confirm('Are you sure you want to cancel this Material Issuance?')) {
+                    let reason = prompt('Please provide a reason for cancellation (minimum 10 characters):');
+                    if (reason && reason.trim().length >= 10) {
+                        document.getElementById('cancelMIReason').value = reason.trim();
+                        document.getElementById('cancelMIForm').submit();
+                    } else if (reason !== null) {
+                        alert('Cancellation reason must be at least 10 characters.');
+                    }
+                }
+            }
+        </script>
+        @endif
         <a href="{{ route('material-issuance.index') }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back
         </a>
@@ -63,8 +78,14 @@
                         <span class="info-value">{{ $materialIssuance->project->name ?? 'N/A' }}</span>
                     </div>
                     <div class="info-item">
-                        <span class="info-label">Fabrication Job</span>
-                        <span class="info-value font-monospace">{{ $materialIssuance->fabricationJob->job_number ?? 'N/A' }}</span>
+                        <span class="info-label">Issuance Type</span>
+                        <span class="info-value">
+                            <span class="badge badge-info">{{ ucfirst($materialIssuance->issuance_type ?? 'project') }}</span>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Work Order Number</span>
+                        <span class="info-value font-monospace">{{ $materialIssuance->work_order_number ?? 'N/A' }}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Issuance Date</span>
@@ -92,8 +113,10 @@
                             <tr>
                                 <th>Item</th>
                                 <th>Quantity</th>
+                                @if(showPrices())
                                 <th>Unit Cost</th>
                                 <th>Total</th>
+                                @endif
                                 <th>Notes</th>
                             </tr>
                         </thead>
@@ -108,12 +131,15 @@
                                         <span class="fw-semibold">{{ number_format($item->quantity, 2) }}</span>
                                         <span class="text-muted">{{ $item->inventoryItem->unit_of_measure }}</span>
                                     </td>
+                                    @if(showPrices())
                                     <td>₱{{ number_format($item->unit_cost, 2) }}</td>
                                     <td><strong class="text-success">₱{{ number_format($item->quantity * $item->unit_cost, 2) }}</strong></td>
+                                    @endif
                                     <td><span class="text-muted">{{ $item->notes ?? '—' }}</span></td>
                                 </tr>
                             @endforeach
                         </tbody>
+                        @if(showPrices())
                         <tfoot>
                             <tr class="table-footer">
                                 <th colspan="3" class="text-end">Total Amount:</th>
@@ -122,6 +148,7 @@
                                 </th>
                             </tr>
                         </tfoot>
+                        @endif
                     </table>
                 </div>
             </div>
@@ -430,6 +457,120 @@
         font-size: 0.75rem;
         font-weight: 600;
     }
+    
+    /* Improved Modal Styling - Fixed Glitches */
+    .modal {
+        z-index: 1055 !important;
+    }
+    
+    .modal-backdrop {
+        z-index: 1050 !important;
+        background-color: rgba(0, 0, 0, 0.6) !important;
+    }
+    
+    .modal-dialog {
+        z-index: 1056 !important;
+        margin: 1.75rem auto;
+    }
+    
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+    }
+    
+    .modal-header {
+        border-radius: 16px 16px 0 0;
+        padding: 1.5rem 2rem;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .modal-title {
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.02em;
+    }
+    
+    .modal-body {
+        padding: 2rem;
+        font-size: 1.0625rem;
+        line-height: 1.7;
+    }
+    
+    .modal-body p {
+        font-size: 1.125rem;
+        font-weight: 500;
+        color: #111827;
+        margin-bottom: 1.5rem;
+    }
+    
+    .modal-footer {
+        padding: 1.5rem 2rem;
+        border-top: 1px solid #e5e7eb;
+        gap: 0.75rem;
+    }
+    
+    .modal-footer .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 10px;
+    }
+    
+    .alert {
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        font-size: 1rem;
+        line-height: 1.6;
+        border: 2px solid;
+    }
+    
+    .alert strong {
+        font-size: 1.0625rem;
+        font-weight: 700;
+    }
+    
+    .alert ul {
+        padding-left: 1.5rem;
+        margin-top: 0.75rem;
+        margin-bottom: 0;
+    }
+    
+    .alert li {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+    }
+    
+    .form-label {
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.75rem;
+        font-size: 1.0625rem;
+    }
+    
+    .form-control {
+        border-radius: 10px;
+        border: 2px solid #e5e7eb;
+        padding: 1rem;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        line-height: 1.5;
+    }
+    
+    .form-control:focus {
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15);
+        outline: none;
+    }
+    
+    .form-text {
+        font-size: 0.9375rem;
+        margin-top: 0.5rem;
+    }
 </style>
 @endpush
+
+
 @endsection

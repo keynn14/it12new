@@ -22,7 +22,7 @@
                     <span><i class="bi bi-info-circle"></i> Request Information</span>
                 </h5>
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label class="form-label-custom">
                             <i class="bi bi-folder"></i> Project
                         </label>
@@ -41,7 +41,7 @@
                         @enderror
                         <small class="form-help-text">Associate this purchase request with a project (optional)</small>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-7">
                         <label class="form-label-custom">
                             <i class="bi bi-card-text"></i> Purpose
                         </label>
@@ -99,6 +99,7 @@
                                     </div>
                                 @enderror
                             </div>
+                            @if(showPrices())
                             <div class="col-md-2">
                                 <label class="form-label-custom">
                                     <i class="bi bi-cash-stack"></i> Unit Cost
@@ -113,6 +114,9 @@
                                     </div>
                                 @enderror
                             </div>
+                            @else
+                            <input type="hidden" name="items[0][unit_cost]" value="0" required>
+                            @endif
                             <div class="col-md-3">
                                 <label class="form-label-custom">
                                     <i class="bi bi-file-text"></i> Specifications

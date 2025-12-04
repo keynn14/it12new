@@ -17,6 +17,7 @@
             <table class="table table-modern">
                 <thead>
                     <tr>
+                        <th>#</th>
                         <th>Code</th>
                         <th>Name</th>
                         <th>Category</th>
@@ -27,8 +28,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($items as $item)
+                    @forelse($items as $index => $item)
                         <tr class="{{ $item->needs_reorder ? 'low-stock-row' : '' }}">
+                            <td><span class="text-muted">{{ ($items->currentPage() - 1) * $items->perPage() + $index + 1 }}</span></td>
                             <td><span class="text-muted font-monospace">{{ $item->item_code }}</span></td>
                             <td>
                                 <div class="fw-semibold">{{ $item->name }}</div>
@@ -69,7 +71,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5">
+                            <td colspan="8" class="text-center py-5">
                                 <div class="empty-state">
                                     <i class="bi bi-boxes"></i>
                                     <p class="mt-3 mb-0">No items found</p>

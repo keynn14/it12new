@@ -17,13 +17,28 @@
                 </button>
             </form>
         @endif
-        <form action="{{ route('goods-returns.destroy', $goodsReturn) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this goods return? This action cannot be undone.');">
+        @if($goodsReturn->status !== 'cancelled' && $goodsReturn->status !== 'approved')
+        <form action="{{ route('goods-returns.cancel', $goodsReturn) }}" method="POST" class="d-inline" id="cancelReturnForm">
             @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-danger">
-                <i class="bi bi-trash"></i> Delete
+            <input type="hidden" name="cancellation_reason" id="cancelReturnReason">
+            <button type="button" class="btn btn-warning" onclick="cancelReturn()">
+                <i class="bi bi-x-circle"></i> Cancel
             </button>
         </form>
+        <script>
+            function cancelReturn() {
+                if (confirm('Are you sure you want to cancel this Goods Return?')) {
+                    let reason = prompt('Please provide a reason for cancellation (minimum 10 characters):');
+                    if (reason && reason.trim().length >= 10) {
+                        document.getElementById('cancelReturnReason').value = reason.trim();
+                        document.getElementById('cancelReturnForm').submit();
+                    } else if (reason !== null) {
+                        alert('Cancellation reason must be at least 10 characters.');
+                    }
+                }
+            }
+        </script>
+        @endif
         <a href="{{ route('goods-returns.index') }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back
         </a>
@@ -401,6 +416,8 @@
         font-size: 0.75rem;
         font-weight: 600;
     }
+    
 </style>
 @endpush
+
 @endsection

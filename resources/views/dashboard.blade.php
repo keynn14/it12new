@@ -2,16 +2,26 @@
 
 @section('title', 'Dashboard')
 
+@php
+    $user = auth()->user();
+    $canAccessProjects = $user && $user->canAccessModule('projects');
+    $canAccessPurchaseOrders = $user && $user->canAccessModule('purchase_orders');
+    $canAccessInventory = $user && $user->canAccessModule('inventory');
+    $canAccessMaterialIssuance = $user && $user->canAccessModule('material_issuance');
+    $canAccessReports = $user && $user->canAccessModule('reports');
+@endphp
+
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center page-header">
     <div>
         <h1 class="h2 mb-1"><i class="bi bi-speedometer2"></i> Dashboard</h1>
-        <p class="text-muted mb-0">Welcome back! Here's what's happening with your business today.</p>
+        <p class="text-muted mb-0">Welcome back, {{ $user->name ?? 'User' }}! Here's what's happening with your business today.</p>
     </div>
 </div>
 
 <!-- Stats Cards -->
 <div class="row mb-2">
+    @if($canAccessProjects)
     <div class="col-md-3 mb-3">
         <div class="stat-card stat-card-primary">
             <div class="stat-card-body">
@@ -19,7 +29,7 @@
                     <div class="stat-content">
                         <p class="stat-label">Total Projects</p>
                         <h2 class="stat-value">{{ $totalProjects }}</h2>
-                        <small class="stat-change text-muted">All time</small>
+                        <small class="stat-change text-muted">Excluding completed</small>
                     </div>
                     <div class="stat-icon">
                         <i class="bi bi-folder"></i>
@@ -45,24 +55,30 @@
             </div>
         </div>
     </div>
+    @endif
     
+    @if($canAccessPurchaseOrders)
     <div class="col-md-3 mb-3">
-        <div class="stat-card stat-card-warning">
-            <div class="stat-card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="stat-content">
-                        <p class="stat-label">Pending POs</p>
-                        <h2 class="stat-value">{{ $pendingPOs }}</h2>
-                        <small class="stat-change text-muted">Awaiting approval</small>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="bi bi-cart"></i>
+        <a href="{{ route('purchase-orders.pending') }}" class="text-decoration-none" style="color: inherit;">
+            <div class="stat-card stat-card-warning" style="cursor: pointer;">
+                <div class="stat-card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="stat-content">
+                            <p class="stat-label">Pending POs</p>
+                            <h2 class="stat-value">{{ $pendingPOs }}</h2>
+                            <small class="stat-change text-muted">Awaiting approval</small>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-cart"></i>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
+    @endif
     
+    @if($canAccessInventory)
     <div class="col-md-3 mb-3">
         <div class="stat-card stat-card-danger">
             <div class="stat-card-body">
@@ -79,10 +95,13 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
 
 <!-- Charts Row -->
+@if($canAccessProjects || $canAccessPurchaseOrders)
 <div class="row mb-2">
+    @if($canAccessProjects)
     <div class="col-md-6 mb-3">
         <div class="chart-card">
             <div class="chart-card-header">
@@ -94,7 +113,9 @@
             </div>
         </div>
     </div>
+    @endif
     
+    @if($canAccessPurchaseOrders)
     <div class="col-md-6 mb-3">
         <div class="chart-card">
             <div class="chart-card-header">
@@ -106,10 +127,14 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
+@endif
 
 <!-- Trend Charts Row -->
+@if($canAccessProjects || $canAccessPurchaseOrders)
 <div class="row mb-2">
+    @if($canAccessPurchaseOrders)
     <div class="col-md-6 mb-3">
         <div class="chart-card">
             <div class="chart-card-header">
@@ -121,7 +146,9 @@
             </div>
         </div>
     </div>
+    @endif
     
+    @if($canAccessProjects)
     <div class="col-md-6 mb-3">
         <div class="chart-card">
             <div class="chart-card-header">
@@ -133,10 +160,14 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
+@endif
 
 <!-- Additional Charts Row -->
+@if($canAccessInventory || ($canAccessPurchaseOrders && $canAccessReports))
 <div class="row mb-2">
+    @if($canAccessInventory)
     <div class="col-md-6 mb-3">
         <div class="chart-card">
             <div class="chart-card-header">
@@ -148,7 +179,9 @@
             </div>
         </div>
     </div>
+    @endif
     
+    @if($canAccessPurchaseOrders && $canAccessReports)
     <div class="col-md-6 mb-3">
         <div class="chart-card">
             <div class="chart-card-header">
@@ -160,10 +193,13 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
+@endif
 
 <!-- Recent Activities -->
 <div class="row">
+    @if($canAccessProjects)
     <div class="col-md-4 mb-3">
         <div class="activity-card">
             <div class="activity-card-header">
@@ -193,7 +229,9 @@
             </div>
         </div>
     </div>
+    @endif
     
+    @if($canAccessPurchaseOrders)
     <div class="col-md-4 mb-3">
         <div class="activity-card">
             <div class="activity-card-header">
@@ -223,23 +261,26 @@
             </div>
         </div>
     </div>
+    @endif
     
+    @if($canAccessMaterialIssuance)
     <div class="col-md-4 mb-3">
         <div class="activity-card">
             <div class="activity-card-header">
-                <h5 class="activity-title">Recent Fabrication Jobs</h5>
-                <a href="{{ route('fabrication.index') }}" class="activity-link">View all <i class="bi bi-arrow-right"></i></a>
+                <h5 class="activity-title">Recent Material Issuances</h5>
+                <a href="{{ route('material-issuance.index') }}" class="activity-link">View all <i class="bi bi-arrow-right"></i></a>
             </div>
             <div class="activity-card-body">
-                @forelse($recentFabricationJobs as $job)
-                    <a href="{{ route('fabrication.show', $job) }}" class="activity-item">
+                @forelse($recentMaterialIssuances as $issuance)
+                    <a href="{{ route('material-issuance.show', $issuance) }}" class="activity-item">
                         <div class="activity-item-content">
                             <div class="activity-item-header">
-                                <h6 class="activity-item-title">{{ $job->job_number }}</h6>
-                                <span class="badge badge-primary">{{ Str::limit($job->description, 20) }}</span>
+                                <h6 class="activity-item-title">{{ $issuance->issuance_number }}</h6>
+                                <span class="badge badge-{{ $issuance->status === 'issued' ? 'success' : ($issuance->status === 'approved' ? 'primary' : 'warning') }}">{{ ucfirst($issuance->status) }}</span>
                             </div>
                             <p class="activity-item-meta">
-                                <i class="bi bi-clock"></i> {{ $job->created_at->diffForHumans() }}
+                                <i class="bi bi-briefcase"></i> {{ $issuance->project->name ?? 'N/A' }} • 
+                                <i class="bi bi-clock"></i> {{ $issuance->created_at->diffForHumans() }}
                             </p>
                         </div>
                         <i class="bi bi-chevron-right activity-arrow"></i>
@@ -247,12 +288,13 @@
                 @empty
                     <div class="activity-empty">
                         <i class="bi bi-inbox"></i>
-                        <p>No fabrication jobs yet</p>
+                        <p>No material issuances yet</p>
                     </div>
                 @endforelse
             </div>
         </div>
     </div>
+    @endif
 </div>
 
 @push('styles')
@@ -566,7 +608,10 @@
     }
 
     // Enhanced Project Status Chart with gradients
-    const projectCtx = document.getElementById('projectStatusChart').getContext('2d');
+    @if($canAccessProjects)
+    const projectStatusChartEl = document.getElementById('projectStatusChart');
+    if (projectStatusChartEl) {
+        const projectCtx = projectStatusChartEl.getContext('2d');
     const projectGradients = [
         createGradient(projectCtx, 'rgba(37, 99, 235, 0.9)', 'rgba(37, 99, 235, 0.6)'),
         createGradient(projectCtx, 'rgba(16, 185, 129, 0.9)', 'rgba(16, 185, 129, 0.6)'),
@@ -642,9 +687,14 @@
             }
         }
     });
+    }
+    @endif
     
     // Enhanced PO Status Chart with gradient bars
-    const poCtx = document.getElementById('poStatusChart').getContext('2d');
+    @if($canAccessPurchaseOrders)
+    const poStatusChartEl = document.getElementById('poStatusChart');
+    if (poStatusChartEl) {
+        const poCtx = poStatusChartEl.getContext('2d');
     const poGradient = createGradient(poCtx, 'rgba(37, 99, 235, 0.9)', 'rgba(59, 130, 246, 0.6)');
     const poLabels = {!! json_encode(array_keys($poStatusData->toArray())) !!};
     const poData = {!! json_encode(array_values($poStatusData->toArray())) !!};
@@ -729,9 +779,14 @@
             }
         }
     });
+    }
+    @endif
 
     // Monthly Purchase Orders Trend Line Chart
-    const monthlyPOCtx = document.getElementById('monthlyPOChart').getContext('2d');
+    @if($canAccessPurchaseOrders)
+    const monthlyPOChartEl = document.getElementById('monthlyPOChart');
+    if (monthlyPOChartEl) {
+        const monthlyPOCtx = monthlyPOChartEl.getContext('2d');
     const monthlyPOGradient = createGradient(monthlyPOCtx, 'rgba(16, 185, 129, 0.3)', 'rgba(16, 185, 129, 0.05)');
     
     const monthlyPOLabels = {!! json_encode(array_keys($monthlyPOs->toArray())) !!};
@@ -817,9 +872,14 @@
             }
         }
     });
+    }
+    @endif
 
     // Monthly Projects Trend Line Chart
-    const monthlyProjectsCtx = document.getElementById('monthlyProjectsChart').getContext('2d');
+    @if($canAccessProjects)
+    const monthlyProjectsChartEl = document.getElementById('monthlyProjectsChart');
+    if (monthlyProjectsChartEl) {
+        const monthlyProjectsCtx = monthlyProjectsChartEl.getContext('2d');
     const monthlyProjectsGradient = createGradient(monthlyProjectsCtx, 'rgba(37, 99, 235, 0.3)', 'rgba(37, 99, 235, 0.05)');
     
     const monthlyProjectsLabels = {!! json_encode(array_keys($monthlyProjects->toArray())) !!};
@@ -905,9 +965,14 @@
             }
         }
     });
+    }
+    @endif
 
     // Inventory Movements Chart
-    const inventoryCtx = document.getElementById('inventoryMovementChart').getContext('2d');
+    @if($canAccessInventory)
+    const inventoryMovementChartEl = document.getElementById('inventoryMovementChart');
+    if (inventoryMovementChartEl) {
+        const inventoryCtx = inventoryMovementChartEl.getContext('2d');
     const inventoryData = {!! json_encode($inventoryMovements) !!};
     
     const inventoryDates = Object.keys(inventoryData);
@@ -1009,9 +1074,14 @@
             }
         }
     });
+    }
+    @endif
 
     // Top Suppliers Chart
-    const suppliersCtx = document.getElementById('topSuppliersChart').getContext('2d');
+    @if($canAccessPurchaseOrders && $canAccessReports)
+    const topSuppliersChartEl = document.getElementById('topSuppliersChart');
+    if (topSuppliersChartEl) {
+        const suppliersCtx = topSuppliersChartEl.getContext('2d');
     const suppliersData = {!! json_encode($topSuppliers) !!};
     
     const supplierNames = suppliersData.map(s => s.supplier ? s.supplier.name : 'Unknown');
@@ -1094,6 +1164,8 @@
             }
         }
     });
+    }
+    @endif
 </script>
 @endpush
 @endsection

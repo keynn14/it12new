@@ -22,7 +22,7 @@
                     <span><i class="bi bi-building"></i> Company Information</span>
                 </h5>
                 <div class="row g-3">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <label class="form-label-custom">
                             <i class="bi bi-building"></i> Supplier Name <span class="text-danger">*</span>
                         </label>
@@ -55,7 +55,7 @@
                     <span><i class="bi bi-person"></i> Contact Information</span>
                 </h5>
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label class="form-label-custom">
                             <i class="bi bi-person-badge"></i> Contact Person
                         </label>
@@ -67,7 +67,7 @@
                         @enderror
                         <small class="form-help-text">Primary contact person's name</small>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label class="form-label-custom">
                             <i class="bi bi-envelope"></i> Email Address
                         </label>
@@ -79,7 +79,7 @@
                         @enderror
                         <small class="form-help-text">Business email address</small>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label-custom">
                             <i class="bi bi-telephone"></i> Phone Number
                         </label>
@@ -91,7 +91,7 @@
                         @enderror
                         <small class="form-help-text">Contact phone number</small>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label class="form-label-custom">
                             <i class="bi bi-toggle-on"></i> Status <span class="text-danger">*</span>
                         </label>

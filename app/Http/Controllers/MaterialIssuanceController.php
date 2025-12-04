@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\MaterialIssuance;
 use App\Models\Project;
-use App\Models\FabricationJob;
 use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -20,7 +19,7 @@ class MaterialIssuanceController extends Controller
 
     public function index(Request $request)
     {
-        $query = MaterialIssuance::with(['project', 'fabricationJob', 'requestedBy', 'approvedBy']);
+        $query = MaterialIssuance::with(['project', 'requestedBy', 'approvedBy']);
 
         if ($request->has('status')) {
             $query->where('status', $request->status);
@@ -28,6 +27,14 @@ class MaterialIssuanceController extends Controller
 
         if ($request->has('project_id')) {
             $query->where('project_id', $request->project_id);
+        }
+
+        if ($request->has('issuance_type')) {
+            $query->where('issuance_type', $request->issuance_type);
+        }
+
+        if ($request->has('work_order_number')) {
+            $query->where('work_order_number', 'like', '%' . $request->work_order_number . '%');
         }
 
         $issuances = $query->latest()->paginate(15);
@@ -38,24 +45,20 @@ class MaterialIssuanceController extends Controller
     public function create(Request $request)
     {
         $project = null;
-        $fabricationJob = null;
         
         if ($request->has('project_id')) {
             $project = Project::findOrFail($request->project_id);
         }
-        
-        if ($request->has('fabrication_job_id')) {
-            $fabricationJob = FabricationJob::findOrFail($request->fabrication_job_id);
-        }
 
-        return view('material_issuance.create', compact('project', 'fabricationJob'));
+        return view('material_issuance.create', compact('project'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'project_id' => 'nullable|exists:projects,id',
-            'fabrication_job_id' => 'nullable|exists:fabrication_jobs,id',
+            'work_order_number' => 'nullable|string|max:255',
+            'issuance_type' => 'required|in:project,maintenance,general,repair,other',
             'issuance_date' => 'required|date',
             'purpose' => 'nullable|string',
             'notes' => 'nullable|string',
@@ -70,6 +73,15 @@ class MaterialIssuanceController extends Controller
         $validated['status'] = 'draft';
         $validated['requested_by'] = auth()->id();
 
+        // Ensure unit_cost defaults to 0 if null or empty for all items
+        if (isset($validated['items'])) {
+            foreach ($validated['items'] as &$item) {
+                if (!isset($item['unit_cost']) || $item['unit_cost'] === null || $item['unit_cost'] === '') {
+                    $item['unit_cost'] = 0;
+                }
+            }
+        }
+
         $issuance = MaterialIssuance::create($validated);
 
         foreach ($validated['items'] as $item) {
@@ -81,7 +93,7 @@ class MaterialIssuanceController extends Controller
 
     public function show(MaterialIssuance $materialIssuance)
     {
-        $materialIssuance->load(['project', 'fabricationJob', 'items.inventoryItem', 'requestedBy', 'approvedBy', 'issuedBy']);
+        $materialIssuance->load(['project', 'items.inventoryItem', 'requestedBy', 'approvedBy', 'issuedBy']);
         return view('material_issuance.show', compact('materialIssuance'));
     }
 
@@ -114,6 +126,30 @@ class MaterialIssuanceController extends Controller
         $this->stockService->processMaterialIssuance($materialIssuance);
 
         return redirect()->route('material-issuance.show', $materialIssuance)->with('success', 'Materials issued and stock updated.');
+    }
+
+    public function cancel(Request $request, MaterialIssuance $materialIssuance)
+    {
+        $validated = $request->validate([
+            'cancellation_reason' => 'required|string|min:10|max:1000',
+        ], [
+            'cancellation_reason.required' => 'Please provide a reason for cancellation.',
+            'cancellation_reason.min' => 'Cancellation reason must be at least 10 characters.',
+            'cancellation_reason.max' => 'Cancellation reason must not exceed 1000 characters.',
+        ]);
+
+        // Check if material issuance is issued (stock already updated)
+        if ($materialIssuance->status === 'issued') {
+            return redirect()->back()->with('error', 'Cannot cancel issued material issuance. Stock has already been updated.');
+        }
+
+        // Update status to cancelled instead of deleting
+        $materialIssuance->update([
+            'status' => 'cancelled',
+            'cancellation_reason' => $validated['cancellation_reason'],
+        ]);
+
+        return redirect()->route('material-issuance.show', $materialIssuance)->with('success', 'Material issuance cancelled successfully.');
     }
 
     public function destroy(MaterialIssuance $materialIssuance)

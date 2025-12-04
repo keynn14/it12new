@@ -151,9 +151,9 @@
     <div class="col-12">
         <div class="info-card">
             <div class="info-card-header">
-                <h5 class="info-card-title"><i class="bi bi-currency-dollar"></i> Supplier Prices</h5>
+                <h5 class="info-card-title"><i class="bi bi-box"></i> Supplier Items</h5>
                 <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addPriceModal">
-                    <i class="bi bi-plus-circle"></i> Add Price
+                    <i class="bi bi-plus-circle"></i> Add Item
                 </button>
             </div>
             <div class="info-card-body">
@@ -165,7 +165,6 @@
                                     <th>Item Code</th>
                                     <th>Item Name</th>
                                     <th>Unit</th>
-                                    <th>Unit Price</th>
                                     <th>Effective Date</th>
                                     <th>Expiry Date</th>
                                     <th>Status</th>
@@ -182,7 +181,6 @@
                                         <td><span class="font-monospace">{{ $price->inventoryItem->item_code }}</span></td>
                                         <td>{{ $price->inventoryItem->name }}</td>
                                         <td><span class="text-muted">{{ $price->inventoryItem->unit_of_measure }}</span></td>
-                                        <td><strong class="text-success">₱{{ number_format($price->unit_price, 2) }}</strong></td>
                                         <td>
                                             <span class="text-muted">
                                                 {{ $price->effective_date ? \Carbon\Carbon::parse($price->effective_date)->format('M d, Y') : 'N/A' }}
@@ -209,7 +207,7 @@
                                                         data-bs-target="#editPriceModal{{ $price->id }}">
                                                     <i class="bi bi-pencil"></i>
                                                 </button>
-                                                <form method="POST" action="{{ route('suppliers.prices.delete', [$supplier, $price->id]) }}" class="d-inline" onsubmit="return confirm('Delete this price?')">
+                                                <form method="POST" action="{{ route('suppliers.prices.delete', [$supplier, $price->id]) }}" class="d-inline" onsubmit="return confirm('Delete this item?')">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-sm btn-outline-danger">
@@ -225,9 +223,9 @@
                     </div>
                 @else
                     <div class="empty-state">
-                        <i class="bi bi-currency-dollar"></i>
-                        <p class="mt-3 mb-0">No prices set</p>
-                        <small class="text-muted">Add prices for materials this supplier can provide</small>
+                        <i class="bi bi-box"></i>
+                        <p class="mt-3 mb-0">No items set</p>
+                        <small class="text-muted">Add items this supplier can provide</small>
                     </div>
                 @endif
             </div>
@@ -242,7 +240,7 @@
             <form method="POST" action="{{ route('suppliers.prices.store', $supplier) }}">
                 @csrf
                 <div class="modal-header">
-                    <h5 class="modal-title">Add Supplier Price</h5>
+                    <h5 class="modal-title">Add Supplier Item</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -255,13 +253,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Unit Price <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text">₱</span>
-                            <input type="number" step="0.01" min="0" name="unit_price" class="form-control" placeholder="0.00" required>
-                        </div>
-                    </div>
+                    <input type="hidden" name="unit_price" value="0">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Effective Date</label>
@@ -279,7 +271,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Price</button>
+                    <button type="submit" class="btn btn-primary">Save Item</button>
                 </div>
             </form>
         </div>
@@ -295,7 +287,7 @@
                 @csrf
                 @method('PUT')
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Supplier Price</h5>
+                    <h5 class="modal-title">Edit Supplier Item</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -303,13 +295,7 @@
                         <label class="form-label">Item</label>
                         <input type="text" class="form-control" value="{{ $price->inventoryItem->item_code }} - {{ $price->inventoryItem->name }}" readonly>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Unit Price <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text">₱</span>
-                            <input type="number" step="0.01" min="0" name="unit_price" class="form-control" value="{{ $price->unit_price }}" required>
-                        </div>
-                    </div>
+                    <input type="hidden" name="unit_price" value="{{ $price->unit_price ?? 0 }}">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Effective Date</label>
@@ -327,7 +313,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Price</button>
+                    <button type="submit" class="btn btn-primary">Update Item</button>
                 </div>
             </form>
         </div>

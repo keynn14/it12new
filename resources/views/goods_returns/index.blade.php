@@ -46,17 +46,19 @@
                                 </span>
                             </td>
                             <td>
-                                <div class="d-flex gap-1">
+                                <div class="action-buttons">
                                     <a href="{{ route('goods-returns.show', $return) }}" class="btn btn-sm btn-action btn-view" title="View">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <form action="{{ route('goods-returns.destroy', $return) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this goods return? This action cannot be undone.');">
+                                    @if($return->status !== 'cancelled' && $return->status !== 'approved')
+                                    <form action="{{ route('goods-returns.cancel', $return) }}" method="POST" class="d-inline cancel-form" data-id="{{ $return->id }}">
                                         @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-action btn-danger" title="Delete">
-                                            <i class="bi bi-trash"></i>
+                                        <input type="hidden" name="cancellation_reason" class="cancel-reason-input">
+                                        <button type="button" class="btn btn-sm btn-action btn-warning cancel-btn" title="Cancel">
+                                            <i class="bi bi-x-circle"></i>
                                         </button>
                                     </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -119,6 +121,11 @@
         transform: scale(1.001);
     }
     
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
     .btn-action {
         width: 36px;
         height: 36px;
@@ -143,17 +150,18 @@
         box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
     }
     
-    .btn-danger {
-        background: #fee2e2;
-        color: #dc2626;
+    .btn-warning {
+        background: #fef3c7;
+        color: #d97706;
     }
     
-    .btn-danger:hover {
-        background: #dc2626;
+    .btn-warning:hover {
+        background: #d97706;
         color: #ffffff;
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+        box-shadow: 0 4px 8px rgba(217, 119, 6, 0.3);
     }
+    
     
     .badge-success {
         background: #10b981;
@@ -197,5 +205,26 @@
         color: #374151;
     }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.cancel-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const form = this.closest('.cancel-form');
+                if (confirm('Are you sure you want to cancel this Goods Return?')) {
+                    let reason = prompt('Please provide a reason for cancellation (minimum 10 characters):');
+                    if (reason && reason.trim().length >= 10) {
+                        form.querySelector('.cancel-reason-input').value = reason.trim();
+                        form.submit();
+                    } else if (reason !== null) {
+                        alert('Cancellation reason must be at least 10 characters.');
+                    }
+                }
+            });
+        });
+    });
+</script>
 @endpush
 @endsection

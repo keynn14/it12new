@@ -13,7 +13,8 @@ class MaterialIssuance extends Model
     protected $fillable = [
         'issuance_number',
         'project_id',
-        'fabrication_job_id',
+        'work_order_number',
+        'issuance_type',
         'issuance_date',
         'status',
         'purpose',
@@ -23,6 +24,7 @@ class MaterialIssuance extends Model
         'approved_at',
         'issued_at',
         'notes',
+        'cancellation_reason',
     ];
 
     protected function casts(): array
@@ -37,11 +39,6 @@ class MaterialIssuance extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
-    }
-
-    public function fabricationJob()
-    {
-        return $this->belongsTo(FabricationJob::class);
     }
 
     public function requestedBy()

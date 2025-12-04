@@ -6,7 +6,7 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center page-header">
     <div>
         <h1 class="h2 mb-1"><i class="bi bi-box-arrow-right"></i> Goods Issue</h1>
-        <p class="text-muted mb-0">Track material issuances for projects and fabrication jobs</p>
+        <p class="text-muted mb-0">Track material issuances for projects and work orders</p>
     </div>
     <a href="{{ route('material-issuance.create') }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> New Goods Issue</a>
 </div>
@@ -15,7 +15,7 @@
     <div class="card-body">
         <form method="GET" class="mb-4 filter-form">
             <div class="row g-2">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label-custom-small">
                         <i class="bi bi-funnel"></i> Filter by Status
                     </label>
@@ -27,18 +27,35 @@
                         <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
                     </select>
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
+                <div class="col-md-3">
+                    <label class="form-label-custom-small">
+                        <i class="bi bi-tag"></i> Issuance Type
+                    </label>
+                    <select name="issuance_type" class="form-control-custom">
+                        <option value="">All Types</option>
+                        <option value="project" {{ request('issuance_type') == 'project' ? 'selected' : '' }}>Project</option>
+                        <option value="maintenance" {{ request('issuance_type') == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
+                        <option value="general" {{ request('issuance_type') == 'general' ? 'selected' : '' }}>General</option>
+                        <option value="repair" {{ request('issuance_type') == 'repair' ? 'selected' : '' }}>Repair</option>
+                        <option value="other" {{ request('issuance_type') == 'other' ? 'selected' : '' }}>Other</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label-custom-small">
+                        <i class="bi bi-search"></i> Work Order Number
+                    </label>
+                    <input type="text" name="work_order_number" class="form-control-custom" placeholder="Search work order..." value="{{ request('work_order_number') }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary flex-fill">
                         <i class="bi bi-search"></i> Filter
                     </button>
-                </div>
-                @if(request('status'))
-                <div class="col-md-2 d-flex align-items-end">
-                    <a href="{{ route('material-issuance.index') }}" class="btn btn-secondary w-100">
+                    @if(request('status') || request('issuance_type') || request('work_order_number'))
+                    <a href="{{ route('material-issuance.index') }}" class="btn btn-secondary">
                         <i class="bi bi-x-circle"></i> Clear
                     </a>
+                    @endif
                 </div>
-                @endif
             </div>
         </form>
         
@@ -48,7 +65,8 @@
                     <tr>
                         <th>Issuance Number</th>
                         <th>Project</th>
-                        <th>Fabrication Job</th>
+                        <th>Type</th>
+                        <th>Work Order</th>
                         <th>Date</th>
                         <th>Status</th>
                         <th>Requested By</th>
@@ -63,7 +81,10 @@
                                 <div class="fw-semibold">{{ $issuance->project->name ?? 'N/A' }}</div>
                             </td>
                             <td>
-                                <span class="font-monospace">{{ $issuance->fabricationJob->job_number ?? 'N/A' }}</span>
+                                <span class="badge badge-info">{{ ucfirst($issuance->issuance_type ?? 'project') }}</span>
+                            </td>
+                            <td>
+                                <span class="font-monospace">{{ $issuance->work_order_number ?? 'N/A' }}</span>
                             </td>
                             <td><span class="text-muted">{{ $issuance->issuance_date->format('M d, Y') }}</span></td>
                             <td>
@@ -77,19 +98,21 @@
                                     <a href="{{ route('material-issuance.show', $issuance) }}" class="btn btn-sm btn-action btn-view" title="View">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <form action="{{ route('material-issuance.destroy', $issuance) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this material issuance? This action cannot be undone.');">
+                                    @if($issuance->status !== 'cancelled' && $issuance->status !== 'issued')
+                                    <form action="{{ route('material-issuance.cancel', $issuance) }}" method="POST" class="d-inline cancel-form" data-id="{{ $issuance->id }}">
                                         @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-action btn-danger" title="Delete">
-                                            <i class="bi bi-trash"></i>
+                                        <input type="hidden" name="cancellation_reason" class="cancel-reason-input">
+                                        <button type="button" class="btn btn-sm btn-action btn-warning cancel-btn" title="Cancel">
+                                            <i class="bi bi-x-circle"></i>
                                         </button>
                                     </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5">
+                            <td colspan="8" class="text-center py-5">
                                 <div class="empty-state">
                                     <i class="bi bi-box-arrow-right"></i>
                                     <p class="mt-3 mb-0">No goods issues found</p>
@@ -272,6 +295,56 @@
         font-weight: 600;
         color: #374151;
     }
+    
+    .btn-warning {
+        background: #fef3c7;
+        color: #d97706;
+    }
+    
+    .btn-warning:hover {
+        background: #d97706;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(217, 119, 6, 0.3);
+    }
+    
+    /* Improved Modal Styling - Fixed Glitches */
+    .modal {
+        z-index: 1055 !important;
+    }
+    
+    .modal-backdrop {
+        z-index: 1050 !important;
+        background-color: rgba(0, 0, 0, 0.6) !important;
+    }
+    
+    .modal-dialog {
+        z-index: 1056 !important;
+        margin: 1.75rem auto;
+    }
+    
 </style>
 @endpush
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.cancel-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const form = this.closest('.cancel-form');
+                if (confirm('Are you sure you want to cancel this Material Issuance?')) {
+                    let reason = prompt('Please provide a reason for cancellation (minimum 10 characters):');
+                    if (reason && reason.trim().length >= 10) {
+                        form.querySelector('.cancel-reason-input').value = reason.trim();
+                        form.submit();
+                    } else if (reason !== null) {
+                        alert('Cancellation reason must be at least 10 characters.');
+                    }
+                }
+            });
+        });
+    });
+</script>
+@endpush
+
 @endsection

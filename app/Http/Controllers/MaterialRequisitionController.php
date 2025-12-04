@@ -61,6 +61,15 @@ class MaterialRequisitionController extends Controller
         $validated['status'] = 'draft';
         $validated['requested_by'] = auth()->id();
 
+        // Ensure unit_cost defaults to 0 if null or empty
+        if (isset($validated['items'])) {
+            foreach ($validated['items'] as &$item) {
+                if (!isset($item['unit_cost']) || $item['unit_cost'] === null || $item['unit_cost'] === '') {
+                    $item['unit_cost'] = 0;
+                }
+            }
+        }
+
         $pr = $this->procurementService->createPurchaseRequest($validated);
 
         return redirect()->route('purchase-requests.show', $pr)->with('success', 'Purchase request created successfully.');
@@ -88,6 +97,30 @@ class MaterialRequisitionController extends Controller
     {
         $purchaseRequest->update(['status' => 'submitted']);
         return redirect()->route('purchase-requests.show', $purchaseRequest)->with('success', 'Purchase request submitted.');
+    }
+
+    public function cancel(Request $request, PurchaseRequest $purchaseRequest)
+    {
+        $validated = $request->validate([
+            'cancellation_reason' => 'required|string|min:10|max:1000',
+        ], [
+            'cancellation_reason.required' => 'Please provide a reason for cancellation.',
+            'cancellation_reason.min' => 'Cancellation reason must be at least 10 characters.',
+            'cancellation_reason.max' => 'Cancellation reason must not exceed 1000 characters.',
+        ]);
+
+        // Check if PR has quotations
+        if ($purchaseRequest->quotations()->exists()) {
+            return redirect()->back()->with('error', 'Cannot cancel purchase request that has associated quotations. Please cancel the quotations first.');
+        }
+
+        // Update status to cancelled instead of deleting
+        $purchaseRequest->update([
+            'status' => 'cancelled',
+            'cancellation_reason' => $validated['cancellation_reason'],
+        ]);
+
+        return redirect()->route('purchase-requests.show', $purchaseRequest)->with('success', 'Purchase request cancelled successfully.');
     }
 
     public function destroy(PurchaseRequest $purchaseRequest)

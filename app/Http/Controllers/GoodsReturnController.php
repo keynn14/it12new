@@ -161,6 +161,30 @@ class GoodsReturnController extends Controller
         return redirect()->route('goods-returns.show', $goodsReturn)->with('success', 'Goods return approved and stock updated.');
     }
 
+    public function cancel(Request $request, GoodsReturn $goodsReturn)
+    {
+        $validated = $request->validate([
+            'cancellation_reason' => 'required|string|min:10|max:1000',
+        ], [
+            'cancellation_reason.required' => 'Please provide a reason for cancellation.',
+            'cancellation_reason.min' => 'Cancellation reason must be at least 10 characters.',
+            'cancellation_reason.max' => 'Cancellation reason must not exceed 1000 characters.',
+        ]);
+
+        // Check if goods return is approved (stock already updated)
+        if ($goodsReturn->status === 'approved') {
+            return redirect()->back()->with('error', 'Cannot cancel approved goods return. Stock has already been updated.');
+        }
+
+        // Update status to cancelled instead of deleting
+        $goodsReturn->update([
+            'status' => 'cancelled',
+            'cancellation_reason' => $validated['cancellation_reason'],
+        ]);
+
+        return redirect()->route('goods-returns.index')->with('success', 'Goods return cancelled successfully.');
+    }
+
     public function destroy(GoodsReturn $goodsReturn)
     {
         // Check if goods return is approved (stock already updated)

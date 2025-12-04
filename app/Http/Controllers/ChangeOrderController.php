@@ -87,6 +87,30 @@ class ChangeOrderController extends Controller
         return redirect()->route('change-orders.show', $changeOrder)->with('success', 'Change order rejected.');
     }
 
+    public function cancel(Request $request, ChangeOrder $changeOrder)
+    {
+        $validated = $request->validate([
+            'cancellation_reason' => 'required|string|min:10|max:1000',
+        ], [
+            'cancellation_reason.required' => 'Please provide a reason for cancellation.',
+            'cancellation_reason.min' => 'Cancellation reason must be at least 10 characters.',
+            'cancellation_reason.max' => 'Cancellation reason must not exceed 1000 characters.',
+        ]);
+
+        // Check if change order is approved
+        if ($changeOrder->status === 'approved') {
+            return redirect()->back()->with('error', 'Cannot cancel approved change order.');
+        }
+
+        // Update status to cancelled instead of deleting
+        $changeOrder->update([
+            'status' => 'cancelled',
+            'cancellation_reason' => $validated['cancellation_reason'],
+        ]);
+
+        return redirect()->route('change-orders.index')->with('success', 'Change order cancelled successfully.');
+    }
+
     public function destroy(ChangeOrder $changeOrder)
     {
         // Check if change order is approved

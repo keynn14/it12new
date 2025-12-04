@@ -21,6 +21,7 @@ class Quotation extends Model
         'total_amount',
         'terms_conditions',
         'notes',
+        'cancellation_reason',
     ];
 
     protected function casts(): array

@@ -112,6 +112,35 @@ class GoodsReceiptController extends Controller
         return redirect()->route('goods-receipts.show', $goodsReceipt)->with('success', 'Goods receipt approved and stock updated.');
     }
 
+    public function cancel(Request $request, GoodsReceipt $goodsReceipt)
+    {
+        $validated = $request->validate([
+            'cancellation_reason' => 'required|string|min:10|max:1000',
+        ], [
+            'cancellation_reason.required' => 'Please provide a reason for cancellation.',
+            'cancellation_reason.min' => 'Cancellation reason must be at least 10 characters.',
+            'cancellation_reason.max' => 'Cancellation reason must not exceed 1000 characters.',
+        ]);
+
+        // Check if goods receipt is approved (stock already updated)
+        if ($goodsReceipt->status === 'approved') {
+            return redirect()->back()->with('error', 'Cannot cancel approved goods receipt. Stock has already been updated.');
+        }
+
+        // Check if goods receipt has returns
+        if ($goodsReceipt->goodsReturns()->exists()) {
+            return redirect()->back()->with('error', 'Cannot cancel goods receipt that has associated returns.');
+        }
+
+        // Update status to cancelled instead of deleting
+        $goodsReceipt->update([
+            'status' => 'cancelled',
+            'cancellation_reason' => $validated['cancellation_reason'],
+        ]);
+
+        return redirect()->route('goods-receipts.index')->with('success', 'Goods receipt cancelled successfully.');
+    }
+
     public function destroy(GoodsReceipt $goodsReceipt)
     {
         // Check if goods receipt is approved (stock already updated)

@@ -131,18 +131,20 @@ class ReportService
             });
     }
 
-    public function exportToCsv($data, $reportName)
+    public function exportToCsv($data, $reportName, $isExcel = false)
     {
-        $filename = "{$reportName}_" . date('Y-m-d') . ".csv";
+        $extension = $isExcel ? 'xlsx' : 'csv';
+        $contentType = $isExcel ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'text/csv; charset=UTF-8';
+        $filename = "{$reportName}_" . date('Y-m-d') . ".{$extension}";
         $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Type' => $contentType,
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
-        $callback = function () use ($data, $reportName) {
+        $callback = function () use ($data, $reportName, $isExcel) {
             $file = fopen('php://output', 'w');
             
-            // Add BOM for UTF-8
+            // Add BOM for UTF-8 (Excel compatibility)
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
             
             if ($data->isEmpty()) {
@@ -177,14 +179,27 @@ class ReportService
         switch ($reportName) {
             case 'inventory_movement':
                 foreach ($data as $movement) {
+                    $reference = '';
+                    if ($movement->reference_type && $movement->reference_id) {
+                        $refParts = explode('\\', $movement->reference_type);
+                        $refName = end($refParts);
+                        $reference = str_replace('App\\Models\\', '', $refName) . ' #' . $movement->reference_id;
+                    }
+                    if ($movement->notes) {
+                        $reference .= ($reference ? ' - ' : '') . $movement->notes;
+                    }
+                    
                     $formatted[] = [
-                        'Date' => $movement->created_at->format('Y-m-d H:i:s'),
+                        'Date' => $movement->created_at->format('Y-m-d'),
+                        'Time' => $movement->created_at->format('H:i:s'),
                         'Item Code' => $movement->inventoryItem->item_code ?? '',
                         'Item Name' => $movement->inventoryItem->name,
                         'Movement Type' => ucfirst(str_replace('_', ' ', $movement->movement_type)),
-                        'Quantity' => number_format($movement->quantity, 2),
-                        'Balance After' => number_format($movement->balance_after, 2),
-                        'Reference' => $movement->reference ?? '',
+                        'Quantity' => $movement->quantity,
+                        'Unit' => $movement->inventoryItem->unit_of_measure ?? '',
+                        'Balance After' => $movement->balance_after,
+                        'Reference' => $reference ?: 'N/A',
+                        'Created By' => $movement->createdBy->name ?? 'System',
                     ];
                 }
                 break;

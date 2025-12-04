@@ -12,8 +12,8 @@
         <a href="{{ route('reports.inventory-movement', array_merge(request()->all(), ['export' => 'pdf'])) }}" class="btn btn-danger">
             <i class="bi bi-file-earmark-pdf"></i> Export PDF
         </a>
-        <a href="{{ route('reports.inventory-movement', array_merge(request()->all(), ['export' => 'csv'])) }}" class="btn btn-success">
-            <i class="bi bi-file-earmark-spreadsheet"></i> Export CSV
+        <a href="{{ route('reports.inventory-movement', array_merge(request()->all(), ['export' => 'excel'])) }}" class="btn btn-success">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Export Excel
         </a>
         <a href="{{ route('reports.index') }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back

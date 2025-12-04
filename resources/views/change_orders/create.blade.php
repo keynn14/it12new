@@ -22,7 +22,7 @@
                     <span><i class="bi bi-info-circle"></i> Project Information</span>
                 </h5>
                 <div class="row g-3">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <label class="form-label-custom">
                             <i class="bi bi-briefcase"></i> Project <span class="text-danger">*</span>
                         </label>

@@ -17,13 +17,28 @@
                 </button>
             </form>
         @endif
-        <form action="{{ route('goods-receipts.destroy', $goodsReceipt) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this goods receipt? This action cannot be undone.');">
+        @if($goodsReceipt->status !== 'cancelled' && $goodsReceipt->status !== 'approved')
+        <form action="{{ route('goods-receipts.cancel', $goodsReceipt) }}" method="POST" class="d-inline" id="cancelGRForm">
             @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-danger">
-                <i class="bi bi-trash"></i> Delete
+            <input type="hidden" name="cancellation_reason" id="cancelGRReason">
+            <button type="button" class="btn btn-warning" onclick="cancelGR()">
+                <i class="bi bi-x-circle"></i> Cancel
             </button>
         </form>
+        <script>
+            function cancelGR() {
+                if (confirm('Are you sure you want to cancel this Goods Receipt?')) {
+                    let reason = prompt('Please provide a reason for cancellation (minimum 10 characters):');
+                    if (reason && reason.trim().length >= 10) {
+                        document.getElementById('cancelGRReason').value = reason.trim();
+                        document.getElementById('cancelGRForm').submit();
+                    } else if (reason !== null) {
+                        alert('Cancellation reason must be at least 10 characters.');
+                    }
+                }
+            }
+        </script>
+        @endif
         <a href="{{ route('goods-receipts.index') }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back
         </a>
@@ -452,6 +467,8 @@
         font-size: 0.75rem;
         font-weight: 600;
     }
+    
 </style>
 @endpush
+
 @endsection

@@ -24,7 +24,7 @@
                     <span><i class="bi bi-info-circle"></i> Return Information</span>
                 </h5>
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label-custom">
                             <i class="bi bi-calendar-event"></i> Return Date <span class="text-danger">*</span>
                         </label>
@@ -35,7 +35,7 @@
                             </div>
                         @enderror
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label class="form-label-custom">
                             <i class="bi bi-exclamation-triangle"></i> Reason <span class="text-danger">*</span>
                         </label>
