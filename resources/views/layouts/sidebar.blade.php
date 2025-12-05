@@ -181,11 +181,11 @@
                         <i class="bi bi-person-fill"></i>
                     </div>
                     <div>
-                        <div class="fw-semibold">{{ auth()->user()->name ?? 'User' }}</div>
-                        <small class="text-white-50">{{ auth()->user()->email ?? 'user@example.com' }}</small>
+                        <div class="fw-semibold" style="font-size: 1rem;">{{ auth()->user()->name ?? 'User' }}</div>
+                        <small class="text-white-50" style="font-size: 0.9375rem;">{{ auth()->user()->email ?? 'user@example.com' }}</small>
                         @if(auth()->user() && auth()->user()->role)
                         <div class="mt-1">
-                            <span class="badge bg-primary" style="font-size: 0.7rem;">{{ auth()->user()->role->name }}</span>
+                            <span class="badge bg-primary" style="font-size: 0.875rem;">{{ auth()->user()->role->name }}</span>
                         </div>
                         @endif
                     </div>
@@ -273,7 +273,7 @@
     transition: all 0.2s ease;
     font-weight: 500;
     margin-bottom: 0.4rem;
-    font-size: 0.9375rem;
+    font-size: 1rem; /* 18px - increased */
 }
 .nav-link-group {
     width: 100%;
@@ -295,17 +295,17 @@
     margin-top: 0.35rem;
 }
 .sub-nav .nav-link {
-    font-size: 0.875rem;
+    font-size: 0.9375rem; /* 16.875px - increased */
     padding: 0.7rem 1.25rem 0.7rem 2.5rem;
     border-radius: 10px;
     color: #e2e8f0;
 }
 .sub-nav .nav-link i {
-    font-size: 0.9rem;
+    font-size: 1rem; /* 18px - increased */
 }
 .nav-link i {
     margin-right: 0.75rem;
-    font-size: 1.125rem;
+    font-size: 1.125rem; /* 20.25px - increased */
     width: 20px;
     text-align: center;
 }
@@ -336,7 +336,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1.125rem; /* 20.25px - increased */
 }
 .sidebar-footer .dropdown-toggle::after {
     display: none;

@@ -15,8 +15,82 @@
     
     @stack('styles')
     <style>
+        /* Base font size normalization - applies to all views */
+        html {
+            font-size: 18px; /* Base font size increased for better readability */
+        }
+        
         body {
             padding-left: 0;
+            font-size: 1rem; /* 18px - increased body text size */
+            line-height: 1.6;
+        }
+        
+        /* Normalize common text elements */
+        p, span, div, label, input, select, textarea, button, a {
+            font-size: inherit;
+        }
+        
+        /* Normalize headings to reasonable sizes */
+        h1 {
+            font-size: 1.75rem; /* 31.5px - increased */
+        }
+        
+        h2 {
+            font-size: 1.5rem; /* 27px - increased */
+        }
+        
+        h3 {
+            font-size: 1.25rem; /* 22.5px - increased */
+        }
+        
+        h4 {
+            font-size: 1.125rem; /* 20.25px - increased */
+        }
+        
+        h5 {
+            font-size: 1rem; /* 18px - increased */
+        }
+        
+        h6 {
+            font-size: 0.9375rem; /* 16.875px - increased */
+        }
+        
+        /* Normalize table text */
+        table {
+            font-size: 1rem; /* 18px - increased */
+        }
+        
+        /* Normalize form elements */
+        .form-control, .form-select, .form-control-custom {
+            font-size: 1rem; /* 18px - increased */
+        }
+        
+        .form-label, .form-label-custom {
+            font-size: 1rem; /* 18px - increased */
+        }
+        
+        /* Normalize buttons */
+        .btn {
+            font-size: 1rem; /* 18px - increased */
+        }
+        
+        .btn-sm {
+            font-size: 0.9375rem; /* 16.875px - increased */
+        }
+        
+        .btn-lg {
+            font-size: 1.125rem; /* 20.25px - increased */
+        }
+        
+        /* Normalize badges */
+        .badge {
+            font-size: 0.875rem; /* 15.75px - increased */
+        }
+        
+        /* Normalize small text */
+        small, .small {
+            font-size: 0.9375rem; /* 16.875px - increased */
         }
         
         @media (min-width: 768px) {
@@ -80,17 +154,17 @@
         }
         
         .page-header h1 {
-            font-size: 1.75rem;
+            font-size: 1.75rem; /* 31.5px - increased */
             font-weight: 700;
             margin-bottom: 0.5rem;
         }
         
         .page-header h1.h2 {
-            font-size: 1.75rem;
+            font-size: 1.5rem; /* 27px - increased */
         }
         
         .page-header p {
-            font-size: 0.9375rem;
+            font-size: 1rem; /* 18px - increased */
             margin-bottom: 0;
         }
         

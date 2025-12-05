@@ -259,7 +259,9 @@ class DashboardController extends Controller
         $pendingInspections = GoodsReceipt::where('status', 'pending')->count();
         $pendingReturns = GoodsReturn::where('status', 'pending')->count();
         $approvedToday = GoodsReceipt::whereDate('approved_at', today())->count();
-        $rejectedToday = GoodsReceipt::whereDate('rejected_at', today())->count();
+        $rejectedToday = GoodsReceipt::where('status', 'rejected')
+            ->whereDate('rejected_at', today())
+            ->count();
 
         $recentReceipts = GoodsReceipt::with('purchaseOrder.supplier')->latest()->take(5)->get();
         $recentReturns = GoodsReturn::with('goodsReceipt.purchaseOrder.supplier')->latest()->take(5)->get();

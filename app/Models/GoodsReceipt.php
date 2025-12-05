@@ -22,6 +22,7 @@ class GoodsReceipt extends Model
         'received_by',
         'approved_by',
         'approved_at',
+        'rejected_at',
     ];
 
     protected function casts(): array
@@ -29,6 +30,7 @@ class GoodsReceipt extends Model
         return [
             'gr_date' => 'date',
             'approved_at' => 'datetime',
+            'rejected_at' => 'datetime',
         ];
     }
 
