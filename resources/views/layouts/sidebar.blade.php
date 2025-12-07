@@ -15,6 +15,7 @@
     $showSuppliers = $user && $user->shouldShowModuleInNavigation('suppliers');
     $showReports = $user && $user->shouldShowModuleInNavigation('reports');
     $showUsers = $user && $user->shouldShowModuleInNavigation('users');
+    $showAuditLogs = $user && $user->isAdmin();
     
     // Check if purchasing menu should be shown (only if at least one sub-item is visible)
     $showPurchasingMenu = $showPurchaseRequests || $showQuotations || $showPurchaseOrders;
@@ -169,6 +170,13 @@
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
                     <i class="bi bi-people"></i> Users
+                </a>
+            </li>
+            @endif
+            @if($showAuditLogs)
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('audit-logs.*') ? 'active' : '' }}" href="{{ route('audit-logs.index') }}">
+                    <i class="bi bi-journal-text"></i> Audit Logs
                 </a>
             </li>
             @endif

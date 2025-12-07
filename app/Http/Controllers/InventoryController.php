@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\InventoryItem;
 use App\Models\StockMovement;
+use App\Models\PurchaseRequest;
 use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -41,8 +42,13 @@ class InventoryController extends Controller
 
         // Add current stock to each item
         $items->getCollection()->transform(function ($item) {
-            $item->current_stock = $this->stockService->getCurrentStock($item->id);
-            $item->needs_reorder = $this->stockService->checkReorderLevel($item->id);
+            if ($item->id) {
+                $item->current_stock = $this->stockService->getCurrentStock($item->id);
+                $item->needs_reorder = $this->stockService->checkReorderLevel($item->id);
+            } else {
+                $item->current_stock = 0;
+                $item->needs_reorder = false;
+            }
             return $item;
         });
 
@@ -80,23 +86,37 @@ class InventoryController extends Controller
         return redirect()->route('inventory.show', $item)->with('success', 'Inventory item created successfully.');
     }
 
-    public function show(InventoryItem $inventoryItem)
+    public function show(InventoryItem $inventory)
     {
-        $currentStock = $this->stockService->getCurrentStock($inventoryItem->id);
-        $movements = StockMovement::where('inventory_item_id', $inventoryItem->id)
-            ->with('createdBy')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        // Ensure the inventory item exists and has an ID
+        if (!$inventory || !$inventory->id) {
+            abort(404, 'Inventory item not found.');
+        }
 
-        return view('inventory.show', compact('inventoryItem', 'currentStock', 'movements'));
+        $currentStock = $this->stockService->getCurrentStock($inventory->id);
+
+        // Load related purchase requests
+        $purchaseRequests = PurchaseRequest::whereHas('items', function($query) use ($inventory) {
+            $query->where('inventory_item_id', $inventory->id);
+        })
+        ->with(['items' => function($query) use ($inventory) {
+            $query->where('inventory_item_id', $inventory->id);
+        }, 'project', 'requestedBy'])
+        ->orderBy('created_at', 'desc')
+        ->paginate(10, ['*'], 'pr_page');
+
+        return view('inventory.show', compact('inventory', 'currentStock', 'purchaseRequests'));
     }
 
-    public function edit(InventoryItem $inventoryItem)
+    public function edit(InventoryItem $inventory)
     {
-        return view('inventory.edit', compact('inventoryItem'));
+        if (!$inventory || !$inventory->id) {
+            abort(404, 'Inventory item not found.');
+        }
+        return view('inventory.edit', compact('inventory'));
     }
 
-    public function update(Request $request, InventoryItem $inventoryItem)
+    public function update(Request $request, InventoryItem $inventory)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -115,13 +135,18 @@ class InventoryController extends Controller
             $validated['unit_cost'] = 0;
         }
 
-        $inventoryItem->update($validated);
+        $inventory->update($validated);
 
-        return redirect()->route('inventory.show', $inventoryItem)->with('success', 'Inventory item updated successfully.');
+        return redirect()->route('inventory.show', $inventory)->with('success', 'Inventory item updated successfully.');
     }
 
     public function adjustStock(Request $request, InventoryItem $inventoryItem)
     {
+        // Ensure the inventory item has an ID
+        if (!$inventoryItem->id) {
+            abort(404, 'Inventory item not found.');
+        }
+
         $validated = $request->validate([
             'quantity' => 'required|numeric',
             'type' => 'required|in:adjustment_in,adjustment_out',

@@ -47,13 +47,17 @@ class StockService
         });
     }
 
-    public function getCurrentStock(int $inventoryItemId): float
+    public function getCurrentStock(?int $inventoryItemId): float
     {
+        if (!$inventoryItemId) {
+            return 0.0;
+        }
+
         $latestMovement = StockMovement::where('inventory_item_id', $inventoryItemId)
             ->orderBy('created_at', 'desc')
             ->first();
 
-        return $latestMovement ? (float) $latestMovement->balance_after : 0;
+        return $latestMovement ? (float) $latestMovement->balance_after : 0.0;
     }
 
     public function processGoodsReceipt(GoodsReceipt $gr): void

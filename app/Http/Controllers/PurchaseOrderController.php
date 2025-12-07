@@ -5,12 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\PurchaseOrder;
 use App\Models\Quotation;
 use App\Services\ProcurementService;
+use App\Traits\LogsAudit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class PurchaseOrderController extends Controller
 {
+    use LogsAudit;
+
     protected $procurementService;
 
     public function __construct(ProcurementService $procurementService)
@@ -88,6 +91,13 @@ class PurchaseOrderController extends Controller
     public function approve(Request $request, PurchaseOrder $purchaseOrder)
     {
         $this->procurementService->approvePurchaseOrder($purchaseOrder, auth()->id());
+        
+        // Refresh to get updated status
+        $purchaseOrder->refresh();
+        
+        // Log approval
+        $this->logApproved($purchaseOrder, "Purchase Order {$purchaseOrder->po_number} approved");
+        
         return redirect()->route('purchase-orders.show', $purchaseOrder)->with('success', 'Purchase order approved.');
     }
 
@@ -119,6 +129,9 @@ class PurchaseOrderController extends Controller
             'status' => 'cancelled',
             'cancellation_reason' => $validated['cancellation_reason'],
         ]);
+
+        // Log cancellation
+        $this->logCancelled($purchaseOrder, "Purchase Order {$purchaseOrder->po_number} cancelled: {$validated['cancellation_reason']}");
 
         // Revert quotation status back to pending/accepted if it exists
         if ($purchaseOrder->quotation) {

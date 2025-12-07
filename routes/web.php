@@ -14,6 +14,7 @@ use App\Http\Controllers\MaterialIssuanceController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AuditLogController;
 
 // Authentication routes (if using Laravel Breeze/Jetstream, these would be auto-generated)
 // For now, we'll add a simple login route
@@ -27,11 +28,33 @@ Route::post('/login', function (\Illuminate\Http\Request $request) {
         'password' => 'required',
     ]);
 
+    $auditLogService = app(\App\Services\AuditLogService::class);
+
     try {
         if (\Illuminate\Support\Facades\Auth::attempt($credentials, $request->filled('remember'))) {
+            $user = \Illuminate\Support\Facades\Auth::user();
             $request->session()->regenerate();
+            
+            // Log successful login
+            $auditLogService->logAction(
+                'login',
+                $user,
+                "User logged in successfully from IP: {$request->ip()}"
+            );
+            
             return redirect()->intended('/');
         }
+        
+        // Log failed login attempt
+        \App\Models\AuditLog::create([
+            'model_type' => \App\Models\User::class,
+            'model_id' => 0,
+            'action' => 'login_failed',
+            'description' => "Failed login attempt with email: {$request->input('email')} from IP: {$request->ip()}",
+            'user_id' => null,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
     } catch (\Exception $e) {
         // Log the error for debugging
         \Log::error('Login attempt failed: ' . $e->getMessage());
@@ -46,6 +69,17 @@ Route::post('/login', function (\Illuminate\Http\Request $request) {
 })->name('login.post');
 
 Route::post('/logout', function (\Illuminate\Http\Request $request) {
+    $auditLogService = app(\App\Services\AuditLogService::class);
+    
+    // Log logout before logging out the user
+    if (auth()->check()) {
+        $auditLogService->logAction(
+            'logout',
+            auth()->user(),
+            "User logged out from IP: {$request->ip()}"
+        );
+    }
+    
     \Illuminate\Support\Facades\Auth::logout();
     $request->session()->invalidate();
     $request->session()->regenerateToken();
@@ -203,5 +237,13 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:admin');
     Route::post('users/{user}/cancel', [UserController::class, 'cancel'])
         ->name('users.cancel')
+        ->middleware('role:admin');
+
+    // Audit Logs - Admin only
+    Route::get('audit-logs', [AuditLogController::class, 'index'])
+        ->name('audit-logs.index')
+        ->middleware('role:admin');
+    Route::get('audit-logs/{auditLog}', [AuditLogController::class, 'show'])
+        ->name('audit-logs.show')
         ->middleware('role:admin');
 });

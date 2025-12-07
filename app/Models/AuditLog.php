@@ -13,6 +13,7 @@ class AuditLog extends Model
         'model_type',
         'model_id',
         'action',
+        'description',
         'old_values',
         'new_values',
         'user_id',
@@ -36,6 +37,35 @@ class AuditLog extends Model
     public function model()
     {
         return $this->morphTo('model', 'model_type', 'model_id');
+    }
+
+    /**
+     * Get the color badge for the action
+     */
+    public function getActionColor(): string
+    {
+        return match($this->action) {
+            'created' => 'success',
+            'updated' => 'info',
+            'deleted' => 'danger',
+            'restored' => 'warning',
+            'approved' => 'success',
+            'rejected' => 'danger',
+            'cancelled' => 'secondary',
+            'stock_adjusted' => 'warning',
+            'login' => 'success',
+            'logout' => 'info',
+            'login_failed' => 'danger',
+            default => 'secondary',
+        };
+    }
+
+    /**
+     * Get formatted model name
+     */
+    public function getModelNameAttribute(): string
+    {
+        return class_basename($this->model_type);
     }
 }
 

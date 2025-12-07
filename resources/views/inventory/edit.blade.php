@@ -6,14 +6,14 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center page-header">
     <div>
         <h1 class="h2 mb-1"><i class="bi bi-pencil"></i> Edit Goods Item</h1>
-        <p class="text-muted mb-0">{{ $inventoryItem->name }}</p>
+        <p class="text-muted mb-0">{{ $inventory->name }}</p>
     </div>
-    <a href="{{ route('inventory.show', $inventoryItem) }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+    <a href="{{ route('inventory.show', $inventory) }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back</a>
 </div>
 
 <div class="form-card">
     <div class="form-card-body">
-        <form method="POST" action="{{ route('inventory.update', $inventoryItem) }}" id="itemForm">
+        <form method="POST" action="{{ route('inventory.update', $inventory) }}" id="itemForm">
             @csrf
             @method('PUT')
             
@@ -27,7 +27,7 @@
                         <label class="form-label-custom">
                             <i class="bi bi-tag"></i> Name <span class="text-danger">*</span>
                         </label>
-                        <input type="text" name="name" class="form-control-custom @error('name') is-invalid @enderror" value="{{ old('name', $inventoryItem->name) }}" placeholder="Enter item name" required>
+                        <input type="text" name="name" class="form-control-custom @error('name') is-invalid @enderror" value="{{ old('name', $inventory->name) }}" placeholder="Enter item name" required>
                         @error('name')
                             <div class="invalid-feedback-custom">
                                 <i class="bi bi-exclamation-circle"></i> {{ $message }}
@@ -40,10 +40,10 @@
                         </label>
                         <select name="item_type" class="form-control-custom @error('item_type') is-invalid @enderror" required>
                             <option value="">Select Type</option>
-                            <option value="raw_material" {{ old('item_type', $inventoryItem->item_type) == 'raw_material' ? 'selected' : '' }}>Raw Material</option>
-                            <option value="finished_good" {{ old('item_type', $inventoryItem->item_type) == 'finished_good' ? 'selected' : '' }}>Finished Good</option>
-                            <option value="consumable" {{ old('item_type', $inventoryItem->item_type) == 'consumable' ? 'selected' : '' }}>Consumable</option>
-                            <option value="tool" {{ old('item_type', $inventoryItem->item_type) == 'tool' ? 'selected' : '' }}>Tool</option>
+                            <option value="raw_material" {{ old('item_type', $inventory->item_type) == 'raw_material' ? 'selected' : '' }}>Raw Material</option>
+                            <option value="finished_good" {{ old('item_type', $inventory->item_type) == 'finished_good' ? 'selected' : '' }}>Finished Good</option>
+                            <option value="consumable" {{ old('item_type', $inventory->item_type) == 'consumable' ? 'selected' : '' }}>Consumable</option>
+                            <option value="tool" {{ old('item_type', $inventory->item_type) == 'tool' ? 'selected' : '' }}>Tool</option>
                         </select>
                         @error('item_type')
                             <div class="invalid-feedback-custom">
@@ -64,7 +64,7 @@
                         <label class="form-label-custom">
                             <i class="bi bi-ruler"></i> Unit of Measure <span class="text-danger">*</span>
                         </label>
-                        <input type="text" name="unit_of_measure" class="form-control-custom @error('unit_of_measure') is-invalid @enderror" value="{{ old('unit_of_measure', $inventoryItem->unit_of_measure) }}" placeholder="e.g., pcs, kg, m" required>
+                        <input type="text" name="unit_of_measure" class="form-control-custom @error('unit_of_measure') is-invalid @enderror" value="{{ old('unit_of_measure', $inventory->unit_of_measure) }}" placeholder="e.g., pcs, kg, m" required>
                         @error('unit_of_measure')
                             <div class="invalid-feedback-custom">
                                 <i class="bi bi-exclamation-circle"></i> {{ $message }}
@@ -78,7 +78,7 @@
                         </label>
                         <div class="input-group-custom">
                             <span class="input-group-text-custom">₱</span>
-                            <input type="number" step="0.01" min="0" name="unit_cost" class="form-control-custom @error('unit_cost') is-invalid @enderror" value="{{ old('unit_cost', $inventoryItem->unit_cost) }}" placeholder="0.00" required>
+                            <input type="number" step="0.01" min="0" name="unit_cost" class="form-control-custom @error('unit_cost') is-invalid @enderror" value="{{ old('unit_cost', $inventory->unit_cost) }}" placeholder="0.00" required>
                         </div>
                         @error('unit_cost')
                             <div class="invalid-feedback-custom">
@@ -87,15 +87,15 @@
                         @enderror
                     </div>
                     @else
-                    <input type="hidden" name="unit_cost" value="{{ old('unit_cost', $inventoryItem->unit_cost ?? 0) }}">
+                    <input type="hidden" name="unit_cost" value="{{ old('unit_cost', $inventory->unit_cost ?? 0) }}">
                     @endif
                     <div class="col-md-4">
                         <label class="form-label-custom">
                             <i class="bi bi-toggle-on"></i> Status <span class="text-danger">*</span>
                         </label>
                         <select name="status" class="form-control-custom @error('status') is-invalid @enderror" required>
-                            <option value="active" {{ old('status', $inventoryItem->status) == 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="inactive" {{ old('status', $inventoryItem->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                            <option value="active" {{ old('status', $inventory->status) == 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="inactive" {{ old('status', $inventory->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
                         </select>
                         @error('status')
                             <div class="invalid-feedback-custom">
@@ -116,7 +116,7 @@
                         <label class="form-label-custom">
                             <i class="bi bi-card-text"></i> Description
                         </label>
-                        <textarea name="description" class="form-control-custom textarea-custom" rows="3" placeholder="Enter item description">{{ old('description', $inventoryItem->description) }}</textarea>
+                        <textarea name="description" class="form-control-custom textarea-custom" rows="3" placeholder="Enter item description">{{ old('description', $inventory->description) }}</textarea>
                     </div>
                 </div>
             </div>
@@ -125,7 +125,7 @@
                 <button type="submit" class="btn btn-primary btn-submit">
                     <i class="bi bi-save"></i> Update Item
                 </button>
-                <a href="{{ route('inventory.show', $inventoryItem) }}" class="btn btn-secondary btn-cancel">
+                <a href="{{ route('inventory.show', $inventory) }}" class="btn btn-secondary btn-cancel">
                     <i class="bi bi-x-circle"></i> Cancel
                 </a>
             </div>
