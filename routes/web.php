@@ -36,25 +36,25 @@ Route::post('/login', function (\Illuminate\Http\Request $request) {
             $request->session()->regenerate();
             
             // Log successful login
-            $auditLogService->logAction(
+            $auditLogService->logActionWithoutModel(
                 'login',
-                $user,
-                "User logged in successfully from IP: {$request->ip()}"
+                \App\Models\User::class,
+                $user->id,
+                "User {$user->name} logged in successfully from IP: {$request->ip()}",
+                $user->id
             );
             
             return redirect()->intended('/');
         }
         
         // Log failed login attempt
-        \App\Models\AuditLog::create([
-            'model_type' => \App\Models\User::class,
-            'model_id' => 0,
-            'action' => 'login_failed',
-            'description' => "Failed login attempt with email: {$request->input('email')} from IP: {$request->ip()}",
-            'user_id' => null,
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-        ]);
+        $auditLogService->logActionWithoutModel(
+            'login_failed',
+            \App\Models\User::class,
+            0,
+            "Failed login attempt with email: {$request->input('email')} from IP: {$request->ip()}",
+            null
+        );
     } catch (\Exception $e) {
         // Log the error for debugging
         \Log::error('Login attempt failed: ' . $e->getMessage());
@@ -73,10 +73,13 @@ Route::post('/logout', function (\Illuminate\Http\Request $request) {
     
     // Log logout before logging out the user
     if (auth()->check()) {
-        $auditLogService->logAction(
+        $user = auth()->user();
+        $auditLogService->logActionWithoutModel(
             'logout',
-            auth()->user(),
-            "User logged out from IP: {$request->ip()}"
+            \App\Models\User::class,
+            $user->id,
+            "User {$user->name} logged out from IP: {$request->ip()}",
+            $user->id
         );
     }
     

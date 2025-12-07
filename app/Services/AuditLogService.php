@@ -20,15 +20,43 @@ class AuditLogService
     ): AuditLog {
         $request = request();
         
+        // Handle models that might not have an ID yet (during creation)
+        $modelId = $model->id ?? 0;
+        
         return AuditLog::create([
             'model_type' => get_class($model),
-            'model_id' => $model->id,
+            'model_id' => $modelId,
             'action' => $action,
             'old_values' => $oldValues,
             'new_values' => $newValues,
             'user_id' => auth()->id(),
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
+            'ip_address' => $request ? $request->ip() : null,
+            'user_agent' => $request ? $request->userAgent() : null,
+            'description' => $description,
+        ]);
+    }
+
+    /**
+     * Log an action without a model (e.g., login, logout)
+     */
+    public function logActionWithoutModel(
+        string $action,
+        string $modelType,
+        ?int $modelId = null,
+        ?string $description = null,
+        ?int $userId = null
+    ): AuditLog {
+        $request = request();
+        
+        return AuditLog::create([
+            'model_type' => $modelType,
+            'model_id' => $modelId ?? 0,
+            'action' => $action,
+            'old_values' => null,
+            'new_values' => null,
+            'user_id' => $userId ?? auth()->id(),
+            'ip_address' => $request ? $request->ip() : null,
+            'user_agent' => $request ? $request->userAgent() : null,
             'description' => $description,
         ]);
     }
@@ -38,7 +66,13 @@ class AuditLogService
      */
     public function logCreated(Model $model, ?string $description = null): AuditLog
     {
-        return $this->log('created', $model, null, $model->getAttributes(), $description);
+        try {
+            $attributes = $model->getAttributes();
+        } catch (\Exception $e) {
+            $attributes = [];
+        }
+        
+        return $this->log('created', $model, null, $attributes, $description);
     }
 
     /**
@@ -55,7 +89,13 @@ class AuditLogService
      */
     public function logDeleted(Model $model, ?string $description = null): AuditLog
     {
-        return $this->log('deleted', $model, $model->getAttributes(), null, $description);
+        try {
+            $attributes = $model->getAttributes();
+        } catch (\Exception $e) {
+            $attributes = [];
+        }
+        
+        return $this->log('deleted', $model, $attributes, null, $description);
     }
 
     /**
@@ -63,7 +103,13 @@ class AuditLogService
      */
     public function logRestored(Model $model, ?string $description = null): AuditLog
     {
-        return $this->log('restored', $model, null, $model->getAttributes(), $description);
+        try {
+            $attributes = $model->getAttributes();
+        } catch (\Exception $e) {
+            $attributes = [];
+        }
+        
+        return $this->log('restored', $model, null, $attributes, $description);
     }
 
     /**
